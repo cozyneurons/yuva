@@ -14,7 +14,7 @@ import {
   X,
   Users,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { NotificationBell } from "./NotificationBell";
 import { cn } from "@/lib/utils";
@@ -40,6 +40,67 @@ export function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const prevActiveElement = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (mobileOpen) {
+      prevActiveElement.current = document.activeElement as HTMLElement;
+      
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          setMobileOpen(false);
+          return;
+        }
+        
+        if (e.key === "Tab" && drawerRef.current) {
+          const focusable = Array.from(
+            drawerRef.current.querySelectorAll<HTMLElement>(
+              'a[href], button, input, textarea, select, [tabindex]:not([tabindex="-1"])'
+            )
+          ).filter(el => !el.hasAttribute('disabled'));
+
+          if (focusable.length === 0) {
+            e.preventDefault();
+            return;
+          }
+
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+
+          if (e.shiftKey) {
+            if (document.activeElement === first) {
+              last.focus();
+              e.preventDefault();
+            }
+          } else {
+            if (document.activeElement === last) {
+              first.focus();
+              e.preventDefault();
+            }
+          }
+        }
+      };
+
+      document.addEventListener("keydown", handleKeyDown);
+      
+      // Delay focus slightly to ensure the drawer is rendered
+      const timeoutId = setTimeout(() => {
+         if (drawerRef.current) {
+            const focusable = drawerRef.current.querySelector<HTMLElement>('a[href], button');
+            if (focusable) focusable.focus();
+         }
+      }, 0);
+
+      return () => {
+        clearTimeout(timeoutId);
+        document.removeEventListener("keydown", handleKeyDown);
+        if (prevActiveElement.current) {
+          prevActiveElement.current.focus();
+        }
+      };
+    }
+  }, [mobileOpen]);
 
   const links = navItems.filter((item) => !item.adminOnly || user?.role === "admin");
 
@@ -97,7 +158,7 @@ export function Sidebar() {
 
       {/* Mobile drawer */}
       {mobileOpen && (
-        <div id="mobile-navigation-drawer" className="lg:hidden fixed inset-0 z-50 flex">
+        <div id="mobile-navigation-drawer" role="dialog" aria-modal="true" ref={drawerRef} className="lg:hidden fixed inset-0 z-50 flex">
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={() => setMobileOpen(false)} />
           <aside className="relative z-10 w-64 bg-white/95 backdrop-blur-xl border-r border-slate-200/60 p-5 flex flex-col shadow-2xl">
             <div className="flex items-center gap-2 mb-6 px-2">
