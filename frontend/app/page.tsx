@@ -11,11 +11,16 @@ export default function HomePage() {
     if (user) {
       try {
         const parsed = JSON.parse(user);
-        if (parsed && typeof parsed === "object" && "role" in parsed) {
-          if (parsed.role === "admin") {
+        if (
+          parsed &&
+          typeof parsed === "object" &&
+          Object.prototype.hasOwnProperty.call(parsed, "role")
+        ) {
+          const { role } = parsed as { role?: unknown };
+          if (role === "admin") {
             router.replace("/admin/dashboard");
             return;
-          } else if (parsed.role === "employee") {
+          } else if (role === "employee") {
             router.replace("/dashboard");
             return;
           }
