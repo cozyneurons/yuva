@@ -42,7 +42,31 @@ export default function PayrollPage() {
     <p className="text-sm text-red-500 p-8">Failed to load payroll data.</p>
   );
 
-  const s = payroll.salary_structure as Record<string, number>;
+  const s = payroll.salary_structure as Record<string, number> | null | undefined;
+
+  if (!s) return (
+    <div className="space-y-6 max-w-2xl">
+      <div>
+        <h1 className="text-xl font-semibold text-gray-900">Payroll</h1>
+        <p className="text-sm text-gray-500 mt-1">Your salary & compensation details</p>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-xl p-8 text-center space-y-4">
+        <div className="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto">
+          <DollarSign size={24} />
+        </div>
+        <div>
+          <h3 className="text-base font-semibold text-gray-900">No Salary Structure Configured</h3>
+          <p className="text-sm text-gray-500 mt-1 max-w-md mx-auto">
+            Your payroll details and salary structure have not been assigned by HR yet. Once configured by an administrator, your breakdown and monthly payslips will appear here.
+          </p>
+        </div>
+        <div className="pt-2 text-xs text-gray-400 border-t border-gray-100 max-w-sm mx-auto">
+          Tip: Log in as <code className="bg-gray-100 px-1 py-0.5 rounded text-gray-700">admin@dayflow.com</code> to configure salary structures under the <strong>Employees</strong> tab, or log in as <code className="bg-gray-100 px-1 py-0.5 rounded text-gray-700">alice@dayflow.com</code> to see an active payroll account.
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-6 max-w-2xl">
