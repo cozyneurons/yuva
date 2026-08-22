@@ -101,7 +101,7 @@ async def test_login_wrong_password(client: AsyncClient):
 @pytest.mark.asyncio
 async def test_protected_route_no_token(client: AsyncClient):
     resp = await client.get("/api/v1/attendance")
-    assert resp.status_code == 403  # HTTPBearer returns 403 when no credentials
+    assert resp.status_code == 401  # HTTPBearer returns 401 when no credentials
 
 
 @pytest.mark.asyncio

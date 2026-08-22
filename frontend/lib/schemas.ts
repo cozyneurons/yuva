@@ -8,6 +8,7 @@ export const registerSchema = z
       .string()
       .min(1, "Employee ID is required")
       .max(50, "Max 50 characters"),
+    full_name: z.string().min(2, "Full name is required"),
     email: z.string().email("Enter a valid email"),
     password: z.string().min(8, "Password must be at least 8 characters"),
     confirm_password: z.string(),

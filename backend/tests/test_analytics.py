@@ -85,7 +85,7 @@ async def test_dashboard_summary(client, session_factory):
 @pytest.mark.asyncio
 async def test_dashboard_summary_requires_auth(client):
     resp = await client.get("/api/v1/dashboard/summary")
-    assert resp.status_code == 403
+    assert resp.status_code == 401
 
 
 @pytest.mark.asyncio

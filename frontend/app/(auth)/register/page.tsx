@@ -25,6 +25,7 @@ export default function RegisterPage() {
     try {
       await authApi.register({
         employee_code: data.employee_code,
+        full_name: data.full_name,
         email: data.email,
         password: data.password,
       });
@@ -69,6 +70,22 @@ export default function RegisterPage() {
           />
           {errors.employee_code && (
             <p className="text-xs text-red-500 mt-1">{errors.employee_code.message}</p>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="reg-full-name" className="block text-sm font-medium text-gray-700 mb-1">
+            Full name
+          </label>
+          <input
+            id="reg-full-name"
+            type="text"
+            placeholder="John Doe"
+            {...register("full_name")}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
+          />
+          {errors.full_name && (
+            <p className="text-xs text-red-500 mt-1">{errors.full_name.message}</p>
           )}
         </div>
 
