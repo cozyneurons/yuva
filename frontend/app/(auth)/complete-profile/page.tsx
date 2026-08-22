@@ -6,29 +6,37 @@ import { completeProfileSchema, CompleteProfileInput } from "@/lib/schemas";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 
 export default function CompleteProfilePage() {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, isLoading } = useAuth();
   const router = useRouter();
   const [serverErr, setServerErr] = useState("");
 
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<CompleteProfileInput>({
     resolver: zodResolver(completeProfileSchema),
     defaultValues: { employee_code: user?.employee_code ?? "" },
   });
 
+  useEffect(() => {
+    if (user && !isLoading) {
+      reset({ employee_code: user.employee_code ?? "" });
+    }
+  }, [user, isLoading, reset]);
+
   const onSubmit = async (data: CompleteProfileInput) => {
+    if (!user) return;
     setServerErr("");
     try {
       await api.patch("/employees/me", data);
       updateUser({ employee_code: data.employee_code, full_name: data.full_name });
-      router.push(user?.role === "admin" ? "/admin/dashboard" : "/dashboard");
+      router.push(user.role === "admin" ? "/admin/dashboard" : "/dashboard");
     } catch (e: unknown) {
       const err = e as { response?: { data?: { detail?: string | any[] } } };
       const detail = err?.response?.data?.detail;
@@ -36,6 +44,18 @@ export default function CompleteProfilePage() {
       setServerErr(msg ?? "Failed to save. Try again.");
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center p-8 text-indigo-500">
+        <Loader2 size={24} className="animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-8 sm:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] animate-fade-in-up">
