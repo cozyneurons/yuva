@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { attendanceApi, leaveApi, dashboardApi } from "@/lib/api";
+import type { LeaveRequestInput } from "@/lib/schemas";
 
 // ─── Dashboard ───────────────────────────────────────────────────────────────
 
@@ -67,7 +68,7 @@ export function useLeaves() {
 export function useRequestLeave() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: unknown) => leaveApi.request(data),
+    mutationFn: (data: LeaveRequestInput) => leaveApi.request(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["leaves"] });
       qc.invalidateQueries({ queryKey: ["admin-overview"] });
