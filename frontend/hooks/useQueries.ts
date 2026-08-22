@@ -92,7 +92,10 @@ export function useCheckIn() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: () => attendanceApi.checkIn().then(r => r.data),
-    onSuccess: (data) => {
+    onMutate: async () => {
+      await qc.cancelQueries({ queryKey: ["attendance"] });
+      const previous = qc.getQueryData(["attendance"]);
+      
       qc.setQueryData(["attendance"], (old: any) => {
         if (!old) return old;
         const now = new Date();
@@ -103,10 +106,22 @@ export function useCheckIn() {
             ...(old.today || {}),
             id: old.today?.id || Date.now(),
             date: todayStr,
-            check_in: data.check_in || new Date().toISOString(),
+            check_in: new Date().toISOString(),
             status: "present"
           }
         };
+      });
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        qc.setQueryData(["attendance"], context.previous);
+      }
+    },
+    onSuccess: (data) => {
+      qc.setQueryData(["attendance"], (old: any) => {
+        if (!old || !old.today) return old;
+        return { ...old, today: { ...old.today, check_in: data.check_in } };
       });
       qc.invalidateQueries({ queryKey: ["attendance"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
@@ -119,16 +134,31 @@ export function useCheckOut() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: () => attendanceApi.checkOut().then(r => r.data),
-    onSuccess: (data) => {
+    onMutate: async () => {
+      await qc.cancelQueries({ queryKey: ["attendance"] });
+      const previous = qc.getQueryData(["attendance"]);
+      
       qc.setQueryData(["attendance"], (old: any) => {
         if (!old || !old.today) return old;
         return {
           ...old,
           today: {
             ...old.today,
-            check_out: data.check_out || new Date().toISOString(),
+            check_out: new Date().toISOString(),
           }
         };
+      });
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        qc.setQueryData(["attendance"], context.previous);
+      }
+    },
+    onSuccess: (data) => {
+      qc.setQueryData(["attendance"], (old: any) => {
+        if (!old || !old.today) return old;
+        return { ...old, today: { ...old.today, check_out: data.check_out } };
       });
       qc.invalidateQueries({ queryKey: ["attendance"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
