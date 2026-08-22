@@ -77,19 +77,24 @@ async def update_leave_status(
     db: AsyncSession = Depends(get_db),
 ):
     """Admin approves or rejects a leave request. Notifies the employee via DB + WebSocket."""
-    result = await db.execute(select(Leave).where(Leave.id == leave_id))
-    leave = result.scalar_one_or_none()
-    if not leave:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Leave request not found")
-
-    if leave.status != LeaveStatus.pending:
+    from sqlalchemy import update
+    result = await db.execute(
+        update(Leave)
+        .where(Leave.id == leave_id, Leave.status == LeaveStatus.pending)
+        .values(status=payload.status, admin_comments=payload.admin_comments)
+    )
+    
+    if result.rowcount == 0:
+        leave_exists = await db.scalar(select(Leave.id).where(Leave.id == leave_id))
+        if not leave_exists:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Leave request not found")
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Leave request has already been processed"
         )
 
-    leave.status = payload.status
-    leave.admin_comments = payload.admin_comments
+    result = await db.execute(select(Leave).where(Leave.id == leave_id))
+    leave = result.scalar_one()
 
     # Notify the employee
     emp_result = await db.execute(select(Employee).where(Employee.id == leave.employee_id))
