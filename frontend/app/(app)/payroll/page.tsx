@@ -23,9 +23,11 @@ export default function PayrollPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `salary-slip-${profile.full_name?.replace(/\s+/g, "-")}.pdf`;
+      a.download = `salary-slip-${(profile.full_name ?? "employee").replace(/\s+/g, "-")}.pdf`;
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(url);
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch {
       alert("Failed to download salary slip.");
     } finally {

@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { leaveRequestSchema, LeaveRequestInput } from "@/lib/schemas";
-import { formatDate } from "@/lib/utils";
+import { formatDate, cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
