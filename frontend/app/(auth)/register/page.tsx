@@ -7,10 +7,12 @@ import { registerSchema, RegisterInput } from "@/lib/schemas";
 import { authApi } from "@/lib/api";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
 import { Loader2, CheckCircle2 } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { setUserAfterRegister } = useAuth();
   const [serverErr, setServerErr] = useState("");
   const [success, setSuccess] = useState(false);
 
@@ -23,28 +25,40 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterInput) => {
     setServerErr("");
     try {
-      await authApi.register({
+      const res = await authApi.register({
         employee_code: data.employee_code,
         full_name: data.full_name,
         email: data.email,
         password: data.password,
       });
+      const { access_token, refresh_token } = res.data as { access_token: string; refresh_token: string };
+      localStorage.setItem("access_token", access_token);
+      localStorage.setItem("refresh_token", refresh_token);
+      // Decode sub (user id) from token
+      const payload = JSON.parse(atob(access_token.split(".")[1]));
+      setUserAfterRegister({
+        id: parseInt(payload.sub),
+        email: data.email,
+        role: (payload.role ?? "employee") as "admin" | "employee",
+        employee_code: data.employee_code,
+      });
       setSuccess(true);
-      setTimeout(() => router.push("/login"), 2000);
+      setTimeout(() => router.push("/dashboard"), 1000);
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { detail?: string | any[] } } };
+      const err = e as { response?: { data?: { detail?: string | unknown[] } } };
       const detail = err?.response?.data?.detail;
-      const msg = typeof detail === "string" ? detail : (Array.isArray(detail) ? detail[0]?.msg : null);
+      const msg = typeof detail === "string" ? detail : (Array.isArray(detail) ? (detail[0] as { msg?: string })?.msg : null);
       setServerErr(msg ?? "Registration failed. Try again.");
     }
   };
+
 
   if (success) {
     return (
       <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm text-center">
         <CheckCircle2 size={36} className="text-green-500 mx-auto mb-3" />
-        <h2 className="text-base font-semibold text-gray-900">Account created</h2>
-        <p className="text-sm text-gray-500 mt-1">Redirecting to login…</p>
+        <h2 className="text-base font-semibold text-gray-900">Account created!</h2>
+        <p className="text-sm text-gray-500 mt-1">Taking you to your dashboard…</p>
       </div>
     );
   }

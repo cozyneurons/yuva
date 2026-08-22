@@ -56,7 +56,14 @@ export function WSProvider({ children }: { children: React.ReactNode }) {
     if (!token) return;
 
     const wsBase = (process.env.NEXT_PUBLIC_WS_URL ?? "ws://localhost:8000").replace(/\/$/, "");
-    const ws = new WebSocket(`${wsBase}/ws/notifications?token=${token}`);
+    // Decode user_id from token payload (sub claim)
+    let userId: string | null = null;
+    try {
+      userId = JSON.parse(atob(token.split(".")[1])).sub;
+    } catch {
+      return;
+    }
+    const ws = new WebSocket(`${wsBase}/ws/${userId}?token=${token}`);
     wsRef.current = ws;
 
     ws.onopen = () => {
