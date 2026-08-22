@@ -1,5 +1,5 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, TIMESTAMP, text
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, TIMESTAMP, text, func
+from sqlalchemy.types import JSON
 from sqlalchemy.orm import relationship
 
 from app.db.base import Base
@@ -14,10 +14,10 @@ class Employee(Base):
     address = Column(Text, nullable=True)
     phone = Column(String(20), nullable=True)
     job_details = Column(Text, nullable=True)
-    salary_structure = Column(JSONB, nullable=True)
-    documents = Column(JSONB, nullable=True)
+    salary_structure = Column(JSON, nullable=True)
+    documents = Column(JSON, nullable=True)
     profile_picture_url = Column(Text, nullable=True)
-    updated_at = Column(TIMESTAMP(timezone=True), server_default=text("now()"), onupdate=text("now()"), nullable=False)
+    updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     # Relationships
     user = relationship("User", back_populates="employee")

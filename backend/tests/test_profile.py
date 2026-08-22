@@ -35,7 +35,7 @@ async def test_get_my_profile_merges_account_fields(client, session_factory):
 @pytest.mark.asyncio
 async def test_get_my_profile_requires_auth(client):
     resp = await client.get(f"{PREFIX}/me")
-    assert resp.status_code == 403  # HTTPBearer rejects missing credentials
+    assert resp.status_code == 401  # HTTPBearer rejects missing credentials
 
 
 @pytest.mark.asyncio

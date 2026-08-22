@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Boolean, Integer, Enum as SAEnum, TIMESTAMP, text
+from sqlalchemy import Column, String, Boolean, Integer, Enum as SAEnum, TIMESTAMP, text, func
 from sqlalchemy.orm import relationship
 import enum
 
@@ -20,7 +20,7 @@ class User(Base):
     google_id = Column(String(255), unique=True, nullable=True)
     role = Column(SAEnum(UserRole, name="user_role"), nullable=False, default=UserRole.employee)
     is_verified = Column(Boolean, nullable=False, default=False)
-    created_at = Column(TIMESTAMP(timezone=True), server_default=text("now()"), nullable=False)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
 
     # Relationships
     employee = relationship("Employee", back_populates="user", uselist=False, cascade="all, delete-orphan")
