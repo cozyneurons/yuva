@@ -1,5 +1,6 @@
 import axios from "axios";
 import type { LeaveRequestInput } from "@/lib/schemas";
+import type { EmployeeUpdate, EmployeeAdminUpdate, SalaryStructureUpdate } from "@/lib/types";
 
 // ─── Axios instance ──────────────────────────────────────────────────────────
 
@@ -66,7 +67,7 @@ export const dashboardApi = {
 // ─── Attendance ──────────────────────────────────────────────────────────────
 
 export const attendanceApi = {
-  getWeekly: () => api.get("/attendance?range=week"),
+  getWeekly: () => api.get("/attendance"),
   checkIn: () => api.post("/attendance/check-in"),
   checkOut: () => api.post("/attendance/check-out"),
 };
@@ -91,16 +92,16 @@ export const notificationsApi = {
 
 export const profileApi = {
   getMe: () => api.get("/employees/me"),
-  updateMe: (data: unknown) => api.patch("/employees/me", data),
+  updateMe: (data: EmployeeUpdate) => api.patch("/employees/me", data),
   getEmployee: (id: number) => api.get(`/employees/${id}`),
-  updateEmployee: (id: number, data: unknown) => api.patch(`/employees/${id}`, data),
+  updateEmployee: (id: number, data: EmployeeAdminUpdate) => api.patch(`/employees/${id}`, data),
 };
 
 // ─── Payroll ──────────────────────────────────────────────────────────────────
 
 export const payrollApi = {
   get: (employeeId: number) => api.get(`/payroll/${employeeId}`),
-  update: (employeeId: number, data: unknown) => api.patch(`/payroll/${employeeId}`, data),
+  update: (employeeId: number, data: { salary_structure: SalaryStructureUpdate }) => api.patch(`/payroll/${employeeId}`, data),
   downloadSlip: (employeeId: number) =>
     api.get(`/payroll/${employeeId}/slip`, { responseType: "blob" }),
 };

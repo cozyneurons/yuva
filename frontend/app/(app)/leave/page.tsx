@@ -63,15 +63,13 @@ export default function LeavePage() {
           <h2 className="text-4xl font-serif font-bold text-theme-dark tracking-tight">Leave</h2>
           <p className="text-sm font-bold text-slate-600 mt-2">Manage your time off</p>
         </div>
-        {user?.role === "employee" && (
-          <button
-            id="request-leave-btn"
-            onClick={() => setShowForm((s) => !s)}
-            className="brutal-btn-outline text-sm"
-          >
-            {showForm ? "Cancel" : "Request leave"}
-          </button>
-        )}
+        <button
+          id="request-leave-btn"
+          onClick={() => setShowForm((s) => !s)}
+          className="text-sm font-medium text-gray-900 border border-gray-300 px-3 py-1.5 rounded-md hover:bg-gray-50 transition"
+        >
+          {showForm ? "Cancel" : "Request leave"}
+        </button>
       </div>
 
       {/* Request form */}

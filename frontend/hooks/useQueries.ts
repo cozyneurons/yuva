@@ -44,8 +44,10 @@ export function useUpdatePayroll() {
   return useMutation({
     mutationFn: ({ employeeId, data }: { employeeId: number; data: unknown }) =>
       payrollApi.update(employeeId, data),
-    onSuccess: (_data, vars) =>
-      qc.invalidateQueries({ queryKey: ["payroll", vars.employeeId] }),
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({ queryKey: ["payroll", vars.employeeId] });
+      qc.invalidateQueries({ queryKey: ["admin-employees"] });
+    },
   });
 }
 
@@ -72,7 +74,16 @@ export function useAdminOverview() {
 export function useAttendance() {
   return useQuery({
     queryKey: ["attendance"],
-    queryFn: () => attendanceApi.getWeekly().then((r) => r.data),
+    queryFn: () => attendanceApi.getWeekly().then((r) => {
+      const records = r.data as any[];
+      const now = new Date();
+      const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      const todayRecord = records.find((rec) => rec.date === todayStr);
+      return {
+        today: todayRecord,
+        weekly: records,
+      };
+    }),
     refetchInterval: 30_000,
   });
 }
@@ -80,8 +91,38 @@ export function useAttendance() {
 export function useCheckIn() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: () => attendanceApi.checkIn(),
-    onSuccess: () => {
+    mutationFn: () => attendanceApi.checkIn().then(r => r.data),
+    onMutate: async () => {
+      await qc.cancelQueries({ queryKey: ["attendance"] });
+      const previous = qc.getQueryData(["attendance"]);
+      
+      qc.setQueryData(["attendance"], (old: any) => {
+        if (!old) return old;
+        const now = new Date();
+        const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        return {
+          ...old,
+          today: {
+            ...(old.today || {}),
+            id: old.today?.id || Date.now(),
+            date: todayStr,
+            check_in: new Date().toISOString(),
+            status: "present"
+          }
+        };
+      });
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        qc.setQueryData(["attendance"], context.previous);
+      }
+    },
+    onSuccess: (data) => {
+      qc.setQueryData(["attendance"], (old: any) => {
+        if (!old || !old.today) return old;
+        return { ...old, today: { ...old.today, check_in: data.check_in } };
+      });
       qc.invalidateQueries({ queryKey: ["attendance"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       qc.invalidateQueries({ queryKey: ["admin-overview"] });
@@ -92,8 +133,33 @@ export function useCheckIn() {
 export function useCheckOut() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: () => attendanceApi.checkOut(),
-    onSuccess: () => {
+    mutationFn: () => attendanceApi.checkOut().then(r => r.data),
+    onMutate: async () => {
+      await qc.cancelQueries({ queryKey: ["attendance"] });
+      const previous = qc.getQueryData(["attendance"]);
+      
+      qc.setQueryData(["attendance"], (old: any) => {
+        if (!old || !old.today) return old;
+        return {
+          ...old,
+          today: {
+            ...old.today,
+            check_out: new Date().toISOString(),
+          }
+        };
+      });
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        qc.setQueryData(["attendance"], context.previous);
+      }
+    },
+    onSuccess: (data) => {
+      qc.setQueryData(["attendance"], (old: any) => {
+        if (!old || !old.today) return old;
+        return { ...old, today: { ...old.today, check_out: data.check_out } };
+      });
       qc.invalidateQueries({ queryKey: ["attendance"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       qc.invalidateQueries({ queryKey: ["admin-overview"] });
