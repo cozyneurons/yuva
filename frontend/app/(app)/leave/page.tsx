@@ -176,12 +176,14 @@ export default function LeavePage() {
                     <div className="flex gap-1.5">
                       <button id={`approve-leave-${leave.id}`}
                         onClick={() => updateStatus.mutate({ id: leave.id, status: "approved", admin_comments: adminComment[leave.id] })}
-                        className="text-xs border border-gray-300 text-gray-700 px-2 py-1 rounded hover:bg-gray-50 transition">
+                        disabled={updateStatus.isPending && updateStatus.variables?.id === leave.id}
+                        className="text-xs border border-gray-300 text-gray-700 px-2 py-1 rounded hover:bg-gray-50 transition disabled:opacity-50">
                         Approve
                       </button>
                       <button id={`reject-leave-${leave.id}`}
                         onClick={() => updateStatus.mutate({ id: leave.id, status: "rejected", admin_comments: adminComment[leave.id] })}
-                        className="text-xs border border-gray-300 text-gray-700 px-2 py-1 rounded hover:bg-gray-50 transition">
+                        disabled={updateStatus.isPending && updateStatus.variables?.id === leave.id}
+                        className="text-xs border border-gray-300 text-gray-700 px-2 py-1 rounded hover:bg-gray-50 transition disabled:opacity-50">
                         Reject
                       </button>
                     </div>

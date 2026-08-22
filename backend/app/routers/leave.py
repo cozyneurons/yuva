@@ -82,6 +82,12 @@ async def update_leave_status(
     if not leave:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Leave request not found")
 
+    if leave.status != LeaveStatus.pending:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Leave request has already been processed"
+        )
+
     leave.status = payload.status
     leave.admin_comments = payload.admin_comments
 

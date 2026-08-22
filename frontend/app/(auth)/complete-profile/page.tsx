@@ -10,7 +10,7 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 
 export default function CompleteProfilePage() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const router = useRouter();
   const [serverErr, setServerErr] = useState("");
 
@@ -27,15 +27,8 @@ export default function CompleteProfilePage() {
     setServerErr("");
     try {
       await api.patch("/employees/me", data);
-      const userStr = localStorage.getItem("user");
-      if (userStr) {
-        const u = JSON.parse(userStr);
-        u.employee_code = data.employee_code;
-        localStorage.setItem("user", JSON.stringify(u));
-        router.push(u.role === "admin" ? "/admin/dashboard" : "/dashboard");
-      } else {
-        router.push("/dashboard");
-      }
+      updateUser({ employee_code: data.employee_code, full_name: data.full_name });
+      router.push(user?.role === "admin" ? "/admin/dashboard" : "/dashboard");
     } catch (e: unknown) {
       const err = e as { response?: { data?: { detail?: string | any[] } } };
       const detail = err?.response?.data?.detail;

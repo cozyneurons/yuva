@@ -21,7 +21,7 @@ const statusLabel: Record<string, string> = {
 };
 
 export default function AttendancePage() {
-  const { data, isLoading } = useAttendance();
+  const { data, isLoading, isError } = useAttendance();
   const checkIn = useCheckIn();
   const checkOut = useCheckOut();
 
@@ -91,7 +91,11 @@ export default function AttendancePage() {
       {/* Weekly */}
       <div className="bg-white border border-gray-200 rounded-lg p-5">
         <p className="text-sm font-medium text-gray-700 mb-3">This week</p>
-        {isLoading ? (
+        {isError ? (
+          <div className="text-sm text-red-500 py-2">
+            Failed to load attendance history.
+          </div>
+        ) : isLoading ? (
           <div className="flex items-center gap-2 text-gray-400 text-sm">
             <Loader2 size={13} className="animate-spin" /> Loading…
           </div>
