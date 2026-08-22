@@ -107,8 +107,3 @@ The repository is organized into two main workspaces:
 - Background jobs for automated end-of-day absentee marking (APScheduler)
 - Advanced analytics and reporting dashboards with PDF generation (e.g., salary slips)
 
----
-
-## Design Reference
-
-- [Excalidraw Workflow & Mockups](https://link.excalidraw.com/l/65VNwvy7c4X/58RLEJ4oOwh)
