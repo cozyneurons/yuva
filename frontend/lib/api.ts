@@ -85,3 +85,34 @@ export const notificationsApi = {
   list: () => api.get("/notifications"),
   markRead: (id: number) => api.patch(`/notifications/${id}/read`),
 };
+
+// ─── Profile ──────────────────────────────────────────────────────────────────
+
+export const profileApi = {
+  getMe: () => api.get("/employees/me"),
+  updateMe: (data: {
+    full_name?: string;
+    address?: string;
+    phone?: string;
+    profile_picture_url?: string;
+  }) => api.patch("/employees/me", data),
+};
+
+// ─── Payroll ──────────────────────────────────────────────────────────────────
+
+export const payrollApi = {
+  /** employee_id comes from the logged-in employee's profile (emp.id) */
+  get: (employeeId: number) =>
+    api.get(`/payroll/${employeeId}`),
+  /** Triggers a real PDF download — returns a blob */
+  downloadSlip: (employeeId: number) =>
+    api.get(`/payroll/${employeeId}/slip`, { responseType: "blob" }),
+};
+
+// ─── Analytics ────────────────────────────────────────────────────────────────
+
+export const analyticsApi = {
+  /** period: "YYYY-MM" — defaults to current month when omitted */
+  getReport: (period?: string) =>
+    api.get("/admin/reports", { params: period ? { period } : {} }),
+};

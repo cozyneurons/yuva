@@ -10,7 +10,9 @@ import {
   CheckCircle,
   Clock,
 } from "lucide-react";
-import { MOCK_PAYROLL_RECORDS, MOCK_EMPLOYEE } from "@/lib/mock-data";
+import { MOCK_PAYROLL_RECORDS } from "@/lib/mock-data";
+import { useProfile, usePayroll } from "@/hooks/useQueries";
+import { payrollApi } from "@/lib/api";
 import type { PayrollRecord, SalaryStructure } from "@/lib/types";
 
 /* ── helpers ──────────────────────────────────────────────────────────────── */
@@ -94,14 +96,14 @@ function StatCard({
   );
 }
 
-/* ── Slip modal ───────────────────────────────────────────────────────────── */
+/* ── Slip modal ─────────────────────────────────────────────────────────────────── */
 function SlipModal({
   record,
-  empName,
+  employeeId,
   onClose,
 }: {
   record: PayrollRecord;
-  empName: string;
+  employeeId: number;
   onClose: () => void;
 }) {
   const modalRef = useRef<HTMLDivElement>(null);
@@ -155,27 +157,27 @@ function SlipModal({
     { label: "Deductions",   amount: s.deductions, type: "deduct" },
   ];
 
-  function handleDownload() {
-    // TODO: replace with GET /api/v1/payroll/{id}/slip  (returns PDF blob)
-    const content = `SALARY SLIP — ${fmtMonth(record.month)}
-Employee: ${empName}
-${"─".repeat(40)}
-Basic Salary   : ${fmt(s.basic)}
-HRA            : ${fmt(s.hra)}
-Allowances     : ${fmt(s.allowances)}
-Deductions     : -${fmt(s.deductions)}
-${"─".repeat(40)}
-NET SALARY     : ${fmt(s.net_salary)}
-${"─".repeat(40)}
-Paid on: ${record.paid_at ? new Date(record.paid_at).toLocaleDateString("en-IN") : "Pending"}
-`;
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `salary-slip-${record.month}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+  async function handleDownload() {
+    try {
+      const { data } = await payrollApi.downloadSlip(employeeId);
+      const url = URL.createObjectURL(new Blob([data], { type: "application/pdf" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `payslip-${record.month}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      // Fallback: generate text slip if backend not reachable yet
+      const s = record.salary_structure;
+      const content = `SALARY SLIP — ${fmtMonth(record.month)}\nEmployee: ${record.full_name}\n${"─".repeat(40)}\nBasic: ${fmt(s.basic)}\nHRA: ${fmt(s.hra)}\nAllowances: ${fmt(s.allowances)}\nDeductions: -${fmt(s.deductions)}\n${"─".repeat(40)}\nNET SALARY: ${fmt(s.net_salary)}\n`;
+      const blob = new Blob([content], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `salary-slip-${record.month}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
   }
 
   return (
@@ -247,7 +249,7 @@ Paid on: ${record.paid_at ? new Date(record.paid_at).toLocaleDateString("en-IN")
           <div
             style={{ fontWeight: 700, fontSize: "0.95rem", color: "var(--text-primary)", marginTop: 2 }}
           >
-            {empName}
+            {record.full_name}
           </div>
         </div>
 
@@ -430,7 +432,11 @@ function PayrollRow({
 
 /* ── Page ─────────────────────────────────────────────────────────────────── */
 export default function PayrollPage() {
-  const records = MOCK_PAYROLL_RECORDS;
+  const { data: profile } = useProfile();
+  const employeeId = profile?.id;
+  const { data: apiRecords } = usePayroll(employeeId);
+  // Fall back to mock while loading / not yet connected
+  const records: PayrollRecord[] = apiRecords ?? MOCK_PAYROLL_RECORDS;
   const [selected, setSelected] = useState<PayrollRecord | null>(null);
 
   const latest = records[0];
@@ -522,10 +528,10 @@ export default function PayrollPage() {
       </div>
 
       {/* Slip modal */}
-      {selected && (
+      {selected && employeeId && (
         <SlipModal
           record={selected}
-          empName={MOCK_EMPLOYEE.full_name}
+          employeeId={employeeId}
           onClose={() => setSelected(null)}
         />
       )}

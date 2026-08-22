@@ -13,8 +13,10 @@ import {
   FileText,
   DollarSign,
   CheckCircle,
+  Loader2,
 } from "lucide-react";
 import { MOCK_EMPLOYEE } from "@/lib/mock-data";
+import { useProfile, useUpdateProfile } from "@/hooks/useQueries";
 import type { Employee, EmployeeUpdate } from "@/lib/types";
 
 /* ── helpers ──────────────────────────────────────────────────────────────── */
@@ -284,13 +286,16 @@ function DocsCard({ emp }: { emp: Employee }) {
 
 /* ── Page ─────────────────────────────────────────────────────────────────── */
 export default function ProfilePage() {
-  const [emp, setEmp] = useState<Employee>(MOCK_EMPLOYEE);
+  const { data: apiEmp, isLoading } = useProfile();
+  // Fall back to mock while loading so the page is never blank
+  const emp: Employee = apiEmp ?? MOCK_EMPLOYEE;
+
   const [editing, setEditing] = useState(false);
   const [saved, setSaved] = useState(false);
+  const updateProfile = useUpdateProfile();
 
-  function handleSave(data: EmployeeUpdate) {
-    // TODO: replace with api.patch("/employees/me", data)
-    setEmp((prev) => ({ ...prev, ...data, updated_at: new Date().toISOString() }));
+  async function handleSave(data: EmployeeUpdate) {
+    await updateProfile.mutateAsync(data);
     setEditing(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);

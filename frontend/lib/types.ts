@@ -7,6 +7,10 @@
 export interface Employee {
   id: number;
   user_id: number;
+  employee_code: string;
+  email: string;
+  role: "admin" | "employee";
+  is_verified: boolean;
   full_name: string;
   address: string | null;
   phone: string | null;
@@ -18,6 +22,7 @@ export interface Employee {
 }
 
 export interface EmployeeUpdate {
+  full_name?: string;
   address?: string;
   phone?: string;
   profile_picture_url?: string;
@@ -35,6 +40,8 @@ export interface SalaryStructure {
 export interface PayrollRecord {
   id: number;
   employee_id: number;
+  employee_code: string;
+  full_name: string;
   month: string; // e.g. "2025-06"
   salary_structure: SalaryStructure;
   paid_at: string | null;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { attendanceApi, leaveApi, dashboardApi } from "@/lib/api";
+import { attendanceApi, leaveApi, dashboardApi, profileApi, payrollApi, analyticsApi } from "@/lib/api";
 
 // ─── Dashboard ───────────────────────────────────────────────────────────────
 
@@ -91,5 +91,49 @@ export function useUpdateLeaveStatus() {
       qc.invalidateQueries({ queryKey: ["leaves"] });
       qc.invalidateQueries({ queryKey: ["admin-overview"] });
     },
+  });
+}
+
+// ─── Profile ─────────────────────────────────────────────────────────────────
+
+export function useProfile() {
+  return useQuery({
+    queryKey: ["profile"],
+    queryFn: () => profileApi.getMe().then((r) => r.data),
+  });
+}
+
+export function useUpdateProfile() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: {
+      full_name?: string;
+      address?: string;
+      phone?: string;
+      profile_picture_url?: string;
+    }) => profileApi.updateMe(data).then((r) => r.data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["profile"] });
+    },
+  });
+}
+
+// ─── Payroll ──────────────────────────────────────────────────────────────────
+
+export function usePayroll(employeeId: number | undefined) {
+  return useQuery({
+    queryKey: ["payroll", employeeId],
+    queryFn: () => payrollApi.get(employeeId!).then((r) => r.data),
+    enabled: !!employeeId,
+  });
+}
+
+// ─── Analytics ────────────────────────────────────────────────────────────────
+
+export function useAnalyticsReport(period?: string) {
+  return useQuery({
+    queryKey: ["analytics-report", period ?? "current"],
+    queryFn: () => analyticsApi.getReport(period).then((r) => r.data),
+    staleTime: 60_000, // report data is stable; don't hammer the DB
   });
 }

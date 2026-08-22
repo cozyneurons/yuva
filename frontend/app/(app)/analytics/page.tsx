@@ -23,6 +23,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { MOCK_ADMIN_REPORT } from "@/lib/mock-data";
+import { useAnalyticsReport } from "@/hooks/useQueries";
 
 /* ── helpers ──────────────────────────────────────────────────────────────── */
 function fmt(n: number) {
@@ -135,15 +136,16 @@ function ChartCard({
 
 /* ── Page ─────────────────────────────────────────────────────────────────── */
 export default function AnalyticsPage() {
-  // TODO: replace with useQuery(() => api.get("/admin/reports?period=2025-06"))
-  const report = MOCK_ADMIN_REPORT;
+  const { data: apiReport } = useAnalyticsReport();
+  // Fall back to mock while loading / not admin
+  const report = apiReport ?? MOCK_ADMIN_REPORT;
 
   const attendanceRate = Math.round(
     (report.present_days / (report.present_days + report.absent_days + report.leave_days)) * 100
   );
 
   // Filter out weekends (zero rows) for cleaner trend chart
-  const trendData = report.attendance_trend.filter((d) => d.present > 0);
+  const trendData = report.attendance_trend.filter((d: any) => d.present > 0);
 
   // Pie data for attendance distribution
   const pieData = [
@@ -306,7 +308,7 @@ export default function AnalyticsPage() {
               <YAxis tick={{ fill: "var(--text-muted)", fontSize: 10 }} axisLine={false} tickLine={false} />
               <Tooltip content={<ChartTooltip />} />
               <Bar dataKey="headcount" name="Employees" radius={[4, 4, 0, 0]}>
-                {report.department_breakdown.map((_, i) => (
+                {report.department_breakdown.map((_: any, i: number) => (
                   <Cell key={i} fill={COLORS[i % COLORS.length]} />
                 ))}
               </Bar>
@@ -344,7 +346,7 @@ export default function AnalyticsPage() {
                 }}
               />
               <Bar dataKey="avg_salary" name="Avg Salary" radius={[4, 4, 0, 0]}>
-                {report.department_breakdown.map((_, i) => (
+                {report.department_breakdown.map((_: any, i: number) => (
                   <Cell key={i} fill={COLORS[(i + 3) % COLORS.length]} />
                 ))}
               </Bar>
