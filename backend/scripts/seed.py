@@ -256,7 +256,7 @@ async def _wipe(session) -> None:
     await session.commit()
 
 
-async def seed(n_employees: int, reset: bool, create_tables: bool) -> None:
+async def seed(n_employees: int, reset: bool, create_tables: bool, seed_data: bool = True) -> None:
     Faker.seed(SEED)
     rng = random.Random(SEED)
     today = date.today()
@@ -266,6 +266,10 @@ async def seed(n_employees: int, reset: bool, create_tables: bool) -> None:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
         print("• tables ensured (create_all)")
+
+    if not seed_data:
+        print("• skipping demo data (--no-seed)")
+        return
 
     async with AsyncSessionLocal() as session:
         existing = (await session.execute(select(func.count(User.id)))).scalar_one()
@@ -356,6 +360,12 @@ def _parse_args() -> argparse.Namespace:
     p.add_argument("--employees", type=int, default=12, help="number of employees to create")
     p.add_argument("--reset", action="store_true", help="wipe existing data before seeding")
     p.add_argument("--create-tables", action="store_true", help="run create_all before seeding")
+    p.add_argument(
+        "--no-seed",
+        dest="no_seed",
+        action="store_true",
+        help="only ensure tables (with --create-tables); insert no demo data",
+    )
     return p.parse_args()
 
 
@@ -363,7 +373,7 @@ def main() -> None:
     args = _parse_args()
     if args.employees < 1:
         raise SystemExit("--employees must be >= 1")
-    asyncio.run(seed(args.employees, args.reset, args.create_tables))
+    asyncio.run(seed(args.employees, args.reset, args.create_tables, seed_data=not args.no_seed))
 
 
 if __name__ == "__main__":
