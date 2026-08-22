@@ -15,6 +15,7 @@ type User = {
   email: string;
   role: "admin" | "employee";
   employee_code: string;
+  full_name?: string;
 };
 
 type AuthCtx = {
@@ -24,6 +25,7 @@ type AuthCtx = {
   setUserAfterRegister: (user: User) => void;
   logout: () => void;
   googleLogin: () => void;
+  updateUser: (data: Partial<User>) => void;
 };
 
 const AuthContext = createContext<AuthCtx>({} as AuthCtx);
@@ -88,6 +90,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [router]);
 
   const googleLogin = () => authApi.googleLogin();
+
+  const updateUser = useCallback((data: Partial<User>) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, ...data };
+      localStorage.setItem("user", JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, isLoading, login, setUserAfterRegister, logout, googleLogin }}>

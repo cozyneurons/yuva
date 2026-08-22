@@ -9,6 +9,8 @@ Dayflow_Master_Plan.md
 .env
 .env.local
 .env.*.local
+.env.production
+.env.development
 
 # ──────────────────────────────────────────────
 #  Python

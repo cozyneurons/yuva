@@ -1,4 +1,5 @@
 import axios from "axios";
+import type { LeaveRequestInput } from "@/lib/schemas";
 
 // ─── Axios instance ──────────────────────────────────────────────────────────
 
@@ -73,7 +74,7 @@ export const attendanceApi = {
 // ─── Leave ───────────────────────────────────────────────────────────────────
 
 export const leaveApi = {
-  request: (data: unknown) => api.post("/leave", data),
+  request: (data: LeaveRequestInput) => api.post("/leave", data),
   list: () => api.get("/leave"),
   updateStatus: (id: number, status: "approved" | "rejected", admin_comments?: string) =>
     api.patch(`/leave/${id}/status`, { status, admin_comments }),

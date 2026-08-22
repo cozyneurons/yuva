@@ -84,12 +84,14 @@ export function WSProvider({ children }: { children: React.ReactNode }) {
     };
 
     ws.onclose = () => {
+      if (wsRef.current !== ws) return;
       setConnected(false);
       // Fall back to polling when WS drops
       startPolling();
     };
 
     ws.onerror = () => {
+      if (wsRef.current !== ws) return;
       ws.close();
       startPolling();
     };
@@ -98,8 +100,13 @@ export function WSProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     connect();
     return () => {
-      wsRef.current?.close();
-      if (pollingRef.current) clearInterval(pollingRef.current);
+      const ws = wsRef.current;
+      wsRef.current = null;
+      ws?.close();
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
     };
   }, [connect]);
 
