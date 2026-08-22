@@ -23,8 +23,10 @@ export default function LoginPage() {
     try {
       await login(data.email, data.password);
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { detail?: string } } };
-      setServerErr(err?.response?.data?.detail ?? "Invalid email or password");
+      const err = e as { response?: { data?: { detail?: string | any[] } } };
+      const detail = err?.response?.data?.detail;
+      const msg = typeof detail === "string" ? detail : (Array.isArray(detail) ? detail[0]?.msg : null);
+      setServerErr(msg ?? "Invalid email or password");
     }
   };
 
