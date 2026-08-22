@@ -30,6 +30,9 @@ export default function AttendancePage() {
   const hasCheckedIn = !!today?.check_in;
   const hasCheckedOut = !!today?.check_out;
 
+  const checkInDisabled = !data || isLoading || hasCheckedIn || checkIn.isPending;
+  const checkOutDisabled = !hasCheckedIn || hasCheckedOut || checkOut.isPending;
+
   return (
     <div className="space-y-8">
       <div>
@@ -60,10 +63,10 @@ export default function AttendancePage() {
           <button
             id="check-in-btn"
             onClick={() => checkIn.mutate()}
-            disabled={!data || isLoading || hasCheckedIn || checkIn.isPending}
+            disabled={checkInDisabled}
             className={cn(
               "flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-semibold border transition-all duration-300",
-              hasCheckedIn
+              checkInDisabled
                 ? "border-slate-200 text-slate-400 bg-slate-50 cursor-not-allowed opacity-70"
                 : "border-transparent text-white bg-indigo-600 hover:bg-indigo-700 shadow-md hover:shadow-xl hover:-translate-y-0.5 active:scale-95"
             )}
@@ -74,10 +77,10 @@ export default function AttendancePage() {
           <button
             id="check-out-btn"
             onClick={() => checkOut.mutate()}
-            disabled={!hasCheckedIn || hasCheckedOut || checkOut.isPending}
+            disabled={checkOutDisabled}
             className={cn(
               "flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-semibold border transition-all duration-300",
-              !hasCheckedIn || hasCheckedOut
+              checkOutDisabled
                 ? "border-slate-200 text-slate-400 bg-slate-50 cursor-not-allowed opacity-70"
                 : "border-transparent text-white bg-slate-900 hover:bg-slate-800 shadow-md hover:shadow-xl hover:-translate-y-0.5 active:scale-95"
             )}
