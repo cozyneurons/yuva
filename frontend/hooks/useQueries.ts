@@ -44,8 +44,10 @@ export function useUpdatePayroll() {
   return useMutation({
     mutationFn: ({ employeeId, data }: { employeeId: number; data: unknown }) =>
       payrollApi.update(employeeId, data),
-    onSuccess: (_data, vars) =>
-      qc.invalidateQueries({ queryKey: ["payroll", vars.employeeId] }),
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({ queryKey: ["payroll", vars.employeeId] });
+      qc.invalidateQueries({ queryKey: ["admin-employees"] });
+    },
   });
 }
 
@@ -72,7 +74,16 @@ export function useAdminOverview() {
 export function useAttendance() {
   return useQuery({
     queryKey: ["attendance"],
-    queryFn: () => attendanceApi.getWeekly().then((r) => r.data),
+    queryFn: () => attendanceApi.getWeekly().then((r) => {
+      const records = r.data as any[];
+      const now = new Date();
+      const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      const todayRecord = records.find((rec) => rec.date === todayStr);
+      return {
+        today: todayRecord,
+        weekly: records,
+      };
+    }),
     refetchInterval: 30_000,
   });
 }

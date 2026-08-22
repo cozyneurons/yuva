@@ -67,7 +67,7 @@ export const dashboardApi = {
 // ─── Attendance ──────────────────────────────────────────────────────────────
 
 export const attendanceApi = {
-  getWeekly: () => api.get("/attendance?range=week"),
+  getWeekly: () => api.get("/attendance"),
   checkIn: () => api.post("/attendance/check-in"),
   checkOut: () => api.post("/attendance/check-out"),
 };
