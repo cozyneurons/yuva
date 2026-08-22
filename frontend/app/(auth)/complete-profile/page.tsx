@@ -27,7 +27,15 @@ export default function CompleteProfilePage() {
     setServerErr("");
     try {
       await api.patch("/employees/me", data);
-      router.push("/dashboard");
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        const u = JSON.parse(userStr);
+        u.employee_code = data.employee_code;
+        localStorage.setItem("user", JSON.stringify(u));
+        router.push(u.role === "admin" ? "/admin/dashboard" : "/dashboard");
+      } else {
+        router.push("/dashboard");
+      }
     } catch (e: unknown) {
       const err = e as { response?: { data?: { detail?: string | any[] } } };
       const detail = err?.response?.data?.detail;
