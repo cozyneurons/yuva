@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.routers import auth, attendance, leave, ws, profile
+from app.routers import auth, attendance, leave, ws, profile, analytics
 
 app = FastAPI(
     title="Dayflow HRMS API",
@@ -32,6 +32,7 @@ app.include_router(auth.router, prefix=API_PREFIX)
 app.include_router(attendance.router, prefix=API_PREFIX)
 app.include_router(leave.router, prefix=API_PREFIX)
 app.include_router(profile.router, prefix=API_PREFIX)
+app.include_router(analytics.router, prefix=API_PREFIX)
 app.include_router(ws.router)  # WebSocket has its own path /ws/{user_id}
 
 
