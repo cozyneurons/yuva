@@ -1,19 +1,12 @@
-/**
- * API client — thin axios wrapper.
- * Base URL reads from NEXT_PUBLIC_API_URL (set in .env.local).
- * Swap from mock → real by pointing that env var at the real backend.
- */
 import axios from "axios";
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
+// ─── Axios instance ──────────────────────────────────────────────────────────
 
 export const api = axios.create({
-  baseURL: BASE_URL,
-  withCredentials: true,
+  baseURL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1",
+  headers: { "Content-Type": "application/json" },
 });
 
-// Attach access token from localStorage on every request
 api.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
     const token = localStorage.getItem("access_token");
@@ -21,3 +14,74 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+api.interceptors.response.use(
+  (res) => res,
+  async (err) => {
+    const original = err.config;
+    if (err.response?.status === 401 && !original._retry) {
+      original._retry = true;
+      const refresh = localStorage.getItem("refresh_token");
+      if (refresh) {
+        try {
+          const { data } = await axios.post(
+            `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1"}/auth/refresh`,
+            { refresh_token: refresh }
+          );
+          localStorage.setItem("access_token", data.access_token);
+          original.headers.Authorization = `Bearer ${data.access_token}`;
+          return api(original);
+        } catch {
+          localStorage.clear();
+          window.location.href = "/login";
+        }
+      }
+    }
+    return Promise.reject(err);
+  }
+);
+
+// ─── Auth endpoints ──────────────────────────────────────────────────────────
+
+export const authApi = {
+  register: (data: unknown) => api.post("/auth/register", data),
+  login: (data: unknown) =>
+    api.post<{ access_token: string; refresh_token: string; role: string }>(
+      "/auth/login",
+      data
+    ),
+  googleLogin: () => {
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1"}/auth/google/login`;
+  },
+};
+
+// ─── Dashboard ───────────────────────────────────────────────────────────────
+
+export const dashboardApi = {
+  getSummary: () => api.get("/dashboard/summary"),
+  getAdminOverview: () => api.get("/admin/overview"),
+};
+
+// ─── Attendance ──────────────────────────────────────────────────────────────
+
+export const attendanceApi = {
+  getWeekly: () => api.get("/attendance?range=week"),
+  checkIn: () => api.post("/attendance/check-in"),
+  checkOut: () => api.post("/attendance/check-out"),
+};
+
+// ─── Leave ───────────────────────────────────────────────────────────────────
+
+export const leaveApi = {
+  request: (data: unknown) => api.post("/leave", data),
+  list: () => api.get("/leave"),
+  updateStatus: (id: number, status: "approved" | "rejected", admin_comments?: string) =>
+    api.patch(`/leave/${id}/status`, { status, admin_comments }),
+};
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+export const notificationsApi = {
+  list: () => api.get("/notifications"),
+  markRead: (id: number) => api.patch(`/notifications/${id}/read`),
+};
