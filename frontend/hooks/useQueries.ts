@@ -35,7 +35,11 @@ export function useCheckIn() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: () => attendanceApi.checkIn(),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["attendance"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["attendance"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["admin-overview"] });
+    },
   });
 }
 
@@ -43,7 +47,11 @@ export function useCheckOut() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: () => attendanceApi.checkOut(),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["attendance"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["attendance"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["admin-overview"] });
+    },
   });
 }
 
@@ -60,7 +68,10 @@ export function useRequestLeave() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (data: unknown) => leaveApi.request(data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["leaves"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["leaves"] });
+      qc.invalidateQueries({ queryKey: ["admin-overview"] });
+    },
   });
 }
 
@@ -76,6 +87,9 @@ export function useUpdateLeaveStatus() {
       status: "approved" | "rejected";
       admin_comments?: string;
     }) => leaveApi.updateStatus(id, status, admin_comments),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["leaves"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["leaves"] });
+      qc.invalidateQueries({ queryKey: ["admin-overview"] });
+    },
   });
 }

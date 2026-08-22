@@ -28,11 +28,12 @@ const statusColors: Record<string, string> = {
 
 export default function LeavePage() {
   const { user } = useAuth();
-  const { data: leaves, isLoading } = useLeaves();
+  const { data: leaves, isLoading, isError } = useLeaves();
   const requestLeave = useRequestLeave();
   const updateStatus = useUpdateLeaveStatus();
   const [showForm, setShowForm] = useState(false);
   const [adminComment, setAdminComment] = useState<Record<number, string>>({});
+  const [serverErr, setServerErr] = useState("");
 
   const {
     register,
@@ -42,9 +43,17 @@ export default function LeavePage() {
   } = useForm<LeaveRequestInput>({ resolver: zodResolver(leaveRequestSchema) });
 
   const onSubmit = async (data: LeaveRequestInput) => {
-    await requestLeave.mutateAsync(data);
-    reset();
-    setShowForm(false);
+    setServerErr("");
+    try {
+      await requestLeave.mutateAsync(data);
+      reset();
+      setShowForm(false);
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { detail?: string | any[] } } };
+      const detail = err?.response?.data?.detail;
+      const msg = typeof detail === "string" ? detail : (Array.isArray(detail) ? detail[0]?.msg : null);
+      setServerErr(msg ?? "Failed to submit request.");
+    }
   };
 
   return (
@@ -106,6 +115,7 @@ export default function LeavePage() {
                 placeholder="Any details…"
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none" />
             </div>
+            {serverErr && <p className="text-sm text-red-500">{serverErr}</p>}
             <button id="leave-submit-btn" type="submit" disabled={isSubmitting}
               className="bg-gray-900 hover:bg-gray-700 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-md transition flex items-center gap-2">
               {isSubmitting && <Loader2 size={13} className="animate-spin" />}
@@ -125,7 +135,10 @@ export default function LeavePage() {
             <Loader2 size={13} className="animate-spin" /> Loading…
           </div>
         )}
-        {!isLoading && (!leaves || (leaves as LeaveRecord[]).length === 0) && (
+        {isError && (
+          <p className="text-sm text-red-500">Failed to load leave requests.</p>
+        )}
+        {!isLoading && !isError && (!leaves || (leaves as LeaveRecord[]).length === 0) && (
           <p className="text-sm text-gray-400">No leave requests yet.</p>
         )}
         <div className="divide-y divide-gray-100">
