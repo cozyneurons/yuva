@@ -1,534 +1,133 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import {
-  DollarSign,
-  Download,
-  TrendingUp,
-  TrendingDown,
-  Calendar,
-  CheckCircle,
-  Clock,
-} from "lucide-react";
-import { MOCK_PAYROLL_RECORDS, MOCK_EMPLOYEE } from "@/lib/mock-data";
-import type { PayrollRecord, SalaryStructure } from "@/lib/types";
+import { useState } from "react";
+import { useMyProfile, usePayroll } from "@/hooks/useQueries";
+import { Loader2, DollarSign, TrendingUp, TrendingDown, Download } from "lucide-react";
+import { payrollApi } from "@/lib/api";
 
-/* ── helpers ──────────────────────────────────────────────────────────────── */
 function fmt(n: number) {
-  return "₹" + n.toLocaleString("en-IN");
+  return "₹" + Number(n).toLocaleString("en-IN");
 }
 
-function fmtMonth(m: string) {
-  const [y, mo] = m.split("-");
-  return new Date(+y, +mo - 1).toLocaleString("en-IN", {
-    month: "long",
-    year: "numeric",
-  });
-}
+export default function PayrollPage() {
+  const { data: profile } = useMyProfile();
+  const { data: payroll, isLoading, isError } = usePayroll(profile?.id);
+  const [downloading, setDownloading] = useState(false);
 
-/* ── Stat card ────────────────────────────────────────────────────────────── */
-function StatCard({
-  label,
-  value,
-  sub,
-  icon: Icon,
-  color,
-}: {
-  label: string;
-  value: string;
-  sub?: string;
-  icon: React.ElementType;
-  color: string;
-}) {
-  return (
-    <div className="stat-card">
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 14,
-        }}
-      >
-        <span
-          style={{
-            fontSize: "0.75rem",
-            color: "var(--text-muted)",
-            textTransform: "uppercase",
-            letterSpacing: "0.06em",
-            fontWeight: 600,
-          }}
-        >
-          {label}
-        </span>
-        <div
-          style={{
-            width: 34,
-            height: 34,
-            borderRadius: "var(--radius-sm)",
-            background: `${color}18`,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Icon size={16} color={color} />
-        </div>
-      </div>
-      <div
-        style={{
-          fontSize: "1.5rem",
-          fontWeight: 800,
-          color: "var(--text-primary)",
-          letterSpacing: "-0.02em",
-        }}
-      >
-        {value}
-      </div>
-      {sub && (
-        <div style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginTop: 4 }}>
-          {sub}
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ── Slip modal ───────────────────────────────────────────────────────────── */
-function SlipModal({
-  record,
-  empName,
-  onClose,
-}: {
-  record: PayrollRecord;
-  empName: string;
-  onClose: () => void;
-}) {
-  const modalRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    // Focus the modal when it opens
-    modalRef.current?.focus();
-    
-    // Save previous focus
-    const previousFocus = document.activeElement as HTMLElement;
-    
-    // Handle Escape and Tab
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        onClose();
-        return;
-      }
-      if (e.key === "Tab" && modalRef.current) {
-        const focusableElements = modalRef.current.querySelectorAll<HTMLElement>(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        );
-        const firstElement = focusableElements[0];
-        const lastElement = focusableElements[focusableElements.length - 1];
-
-        if (e.shiftKey) {
-          if (document.activeElement === firstElement) {
-            lastElement?.focus();
-            e.preventDefault();
-          }
-        } else {
-          if (document.activeElement === lastElement) {
-            firstElement?.focus();
-            e.preventDefault();
-          }
-        }
-      }
+  async function downloadSlip() {
+    if (!profile?.id) return;
+    setDownloading(true);
+    try {
+      const res = await payrollApi.downloadSlip(profile.id);
+      const blob = new Blob([res.data], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `salary-slip-${profile.full_name?.replace(/\s+/g, "-")}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert("Failed to download salary slip.");
+    } finally {
+      setDownloading(false);
     }
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      previousFocus?.focus();
-    };
-  }, [onClose]);
-
-  const s: SalaryStructure = record.salary_structure;
-  const rows = [
-    { label: "Basic Salary", amount: s.basic, type: "earn" },
-    { label: "HRA",          amount: s.hra,   type: "earn" },
-    { label: "Allowances",   amount: s.allowances, type: "earn" },
-    { label: "Deductions",   amount: s.deductions, type: "deduct" },
-  ];
-
-  function handleDownload() {
-    // TODO: replace with GET /api/v1/payroll/{id}/slip  (returns PDF blob)
-    const content = `SALARY SLIP — ${fmtMonth(record.month)}
-Employee: ${empName}
-${"─".repeat(40)}
-Basic Salary   : ${fmt(s.basic)}
-HRA            : ${fmt(s.hra)}
-Allowances     : ${fmt(s.allowances)}
-Deductions     : -${fmt(s.deductions)}
-${"─".repeat(40)}
-NET SALARY     : ${fmt(s.net_salary)}
-${"─".repeat(40)}
-Paid on: ${record.paid_at ? new Date(record.paid_at).toLocaleDateString("en-IN") : "Pending"}
-`;
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `salary-slip-${record.month}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
   }
 
+  if (isLoading || !profile) return (
+    <div className="flex items-center gap-2 text-gray-400 text-sm p-8">
+      <Loader2 size={16} className="animate-spin" /> Loading payroll…
+    </div>
+  );
+  if (isError || !payroll) return (
+    <p className="text-sm text-red-500 p-8">Failed to load payroll data.</p>
+  );
+
+  const s = payroll.salary_structure as Record<string, number> | null | undefined;
+
+  if (!s) return (
+    <div className="space-y-6 max-w-2xl">
+      <div>
+        <h1 className="text-xl font-semibold text-gray-900">Payroll</h1>
+        <p className="text-sm text-gray-500 mt-1">Your salary & compensation details</p>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-xl p-8 text-center space-y-4">
+        <div className="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto">
+          <DollarSign size={24} />
+        </div>
+        <div>
+          <h3 className="text-base font-semibold text-gray-900">No Salary Structure Configured</h3>
+          <p className="text-sm text-gray-500 mt-1 max-w-md mx-auto">
+            Your payroll details and salary structure have not been assigned by HR yet. Once configured by an administrator, your breakdown and monthly payslips will appear here.
+          </p>
+        </div>
+        <div className="pt-2 text-xs text-gray-400 border-t border-gray-100 max-w-sm mx-auto">
+          Tip: Log in as <code className="bg-gray-100 px-1 py-0.5 rounded text-gray-700">admin@dayflow.com</code> to configure salary structures under the <strong>Employees</strong> tab, or log in as <code className="bg-gray-100 px-1 py-0.5 rounded text-gray-700">alice@dayflow.com</code> to see an active payroll account.
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,0.7)",
-        backdropFilter: "blur(6px)",
-        zIndex: 50,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 20,
-      }}
-      onClick={onClose}
-    >
-      <div
-        ref={modalRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="modal-title"
-        tabIndex={-1}
-        className="card animate-fade-up focus-visible:outline-none"
-        style={{ maxWidth: 480, width: "100%", padding: 32 }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: 24,
-          }}
-        >
-          <div>
-            <h2
-              id="modal-title"
-              style={{
-                fontWeight: 800,
-                fontSize: "1.1rem",
-                color: "var(--text-primary)",
-              }}
-            >
-              Salary Slip
-            </h2>
-            <p style={{ color: "var(--text-muted)", fontSize: "0.8rem", marginTop: 2 }}>
-              {fmtMonth(record.month)}
-            </p>
-          </div>
-          <span
-            className={record.paid_at ? "badge badge-green" : "badge badge-amber"}
-          >
-            {record.paid_at ? "Paid" : "Pending"}
-          </span>
-        </div>
+    <div className="space-y-6 max-w-2xl">
+      <div>
+        <h1 className="text-xl font-semibold text-gray-900">Payroll</h1>
+        <p className="text-sm text-gray-500 mt-1">Your current salary structure</p>
+      </div>
 
-        {/* Employee info */}
-        <div
-          style={{
-            background: "var(--bg-surface)",
-            borderRadius: "var(--radius-md)",
-            padding: "14px 18px",
-            marginBottom: 20,
-          }}
-        >
-          <div style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>Employee</div>
-          <div
-            style={{ fontWeight: 700, fontSize: "0.95rem", color: "var(--text-primary)", marginTop: 2 }}
-          >
-            {empName}
+      {/* Stat cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {[
+          { label: "Net Salary", value: fmt(s.net_salary), icon: DollarSign, color: "text-indigo-600" },
+          { label: "Basic", value: fmt(s.basic), icon: TrendingUp, color: "text-blue-600" },
+          { label: "Deductions", value: fmt(s.deductions), icon: TrendingDown, color: "text-red-500" },
+        ].map(({ label, value, icon: Icon, color }) => (
+          <div key={label} className="bg-white border border-gray-200 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Icon size={15} className={color} />
+              <p className="text-xs text-gray-400 uppercase tracking-wide">{label}</p>
+            </div>
+            <p className={`text-xl font-bold ${color}`}>{value}</p>
           </div>
-        </div>
+        ))}
+      </div>
 
-        {/* Breakdown */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
-          {rows.map((r) => (
-            <div
-              key={r.label}
-              style={{ display: "flex", justifyContent: "space-between" }}
-            >
-              <span style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>
-                {r.label}
-              </span>
-              <span
-                style={{
-                  fontWeight: 600,
-                  fontSize: "0.875rem",
-                  color:
-                    r.type === "deduct"
-                      ? "var(--red)"
-                      : "var(--text-primary)",
-                }}
-              >
+      {/* Breakdown */}
+      <div className="bg-white border border-gray-200 rounded-xl p-5">
+        <p className="text-sm font-medium text-gray-900 mb-4">Salary Breakdown</p>
+        <div className="space-y-3">
+          {[
+            { label: "Basic Salary", amount: s.basic, type: "earn" },
+            { label: "HRA", amount: s.hra, type: "earn" },
+            { label: "Allowances", amount: s.allowances, type: "earn" },
+            { label: "Deductions", amount: s.deductions, type: "deduct" },
+          ].map(r => (
+            <div key={r.label} className="flex justify-between items-center text-sm">
+              <span className="text-gray-600">{r.label}</span>
+              <span className={`font-medium ${r.type === "deduct" ? "text-red-500" : "text-gray-900"}`}>
                 {r.type === "deduct" ? `−${fmt(r.amount)}` : fmt(r.amount)}
               </span>
             </div>
           ))}
-          <div style={{ height: 1, background: "var(--border)", margin: "4px 0" }} />
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span style={{ fontWeight: 700, color: "var(--text-primary)" }}>
-              Net Salary
-            </span>
-            <span
-              style={{
-                fontWeight: 800,
-                fontSize: "1.1rem",
-                color: "var(--accent-light)",
-              }}
-            >
-              {fmt(s.net_salary)}
-            </span>
+          <div className="border-t border-gray-100 pt-3 flex justify-between items-center">
+            <span className="font-semibold text-gray-900">Net Salary</span>
+            <span className="font-bold text-lg text-indigo-600">{fmt(s.net_salary)}</span>
           </div>
         </div>
 
-        {/* Actions */}
-        <div style={{ display: "flex", gap: 10 }}>
-          <button
-            id="download-slip-btn"
-            className="btn btn-primary"
-            style={{ flex: 1 }}
-            onClick={handleDownload}
-          >
-            <Download size={15} /> Download slip
-          </button>
-          <button className="btn btn-ghost" onClick={onClose}>
-            Close
+        <div className="mt-5 pt-4 border-t border-gray-100">
+          <button onClick={downloadSlip} disabled={downloading}
+            className="flex items-center gap-2 text-sm font-medium bg-gray-900 text-white px-4 py-2.5 rounded-lg hover:bg-gray-700 disabled:opacity-50 transition">
+            {downloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+            Download Salary Slip (PDF)
           </button>
         </div>
       </div>
-    </div>
-  );
-}
 
-/* ── Record row ───────────────────────────────────────────────────────────── */
-function PayrollRow({
-  record,
-  prev,
-  onClick,
-}: {
-  record: PayrollRecord;
-  prev: PayrollRecord | null;
-  onClick: () => void;
-}) {
-  const net = record.salary_structure.net_salary;
-  const prevNet = prev?.salary_structure.net_salary ?? net;
-  const delta = net - prevNet;
-
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      className="card card-glow focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:outline-none"
-      onClick={onClick}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onClick();
-        }
-      }}
-      style={{
-        padding: "18px 22px",
-        display: "flex",
-        alignItems: "center",
-        gap: 16,
-        cursor: "pointer",
-        flexWrap: "wrap",
-      }}
-    >
-      {/* Month icon */}
-      <div
-        style={{
-          width: 44,
-          height: 44,
-          borderRadius: "var(--radius-md)",
-          background: "var(--accent-dim)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-        }}
-      >
-        <Calendar size={20} color="var(--accent-light)" />
-      </div>
-
-      {/* Month label */}
-      <div style={{ flex: 1, minWidth: 120 }}>
-        <div style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--text-primary)" }}>
-          {fmtMonth(record.month)}
-        </div>
-        <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: 2 }}>
-          {record.paid_at
-            ? `Paid ${new Date(record.paid_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}`
-            : "Not yet paid"}
-        </div>
-      </div>
-
-      {/* Delta */}
-      {delta !== 0 && (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 4,
-            fontSize: "0.78rem",
-            fontWeight: 600,
-            color: delta > 0 ? "var(--green)" : "var(--red)",
-          }}
-        >
-          {delta > 0 ? <TrendingUp size={13} /> : <TrendingDown size={13} />}
-          {delta > 0 ? "+" : ""}
-          {fmt(Math.abs(delta))}
-        </div>
-      )}
-
-      {/* Net */}
-      <div style={{ textAlign: "right", minWidth: 110 }}>
-        <div
-          style={{
-            fontWeight: 800,
-            fontSize: "1rem",
-            color: "var(--accent-light)",
-            letterSpacing: "-0.01em",
-          }}
-        >
-          {fmt(net)}
-        </div>
-        <div style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: 2 }}>
-          net salary
-        </div>
-      </div>
-
-      {/* Status badge */}
-      <span
-        className={record.paid_at ? "badge badge-green" : "badge badge-amber"}
-        style={{ flexShrink: 0 }}
-      >
-        {record.paid_at ? (
-          <>
-            <CheckCircle size={10} /> Paid
-          </>
-        ) : (
-          <>
-            <Clock size={10} /> Pending
-          </>
-        )}
-      </span>
-    </div>
-  );
-}
-
-/* ── Page ─────────────────────────────────────────────────────────────────── */
-export default function PayrollPage() {
-  const records = MOCK_PAYROLL_RECORDS;
-  const [selected, setSelected] = useState<PayrollRecord | null>(null);
-
-  const latest = records[0];
-  const s = latest.salary_structure;
-  const totalYTD = records.reduce(
-    (acc, r) => acc + r.salary_structure.net_salary,
-    0
-  );
-
-  return (
-    <div style={{ maxWidth: 900, margin: "0 auto" }}>
-      {/* Page header */}
-      <div className="animate-fade-up" style={{ marginBottom: 32 }}>
-        <h1
-          style={{
-            fontSize: "1.6rem",
-            fontWeight: 800,
-            color: "var(--text-primary)",
-            letterSpacing: "-0.02em",
-          }}
-        >
-          Payroll
-        </h1>
-        <p style={{ color: "var(--text-secondary)", marginTop: 4, fontSize: "0.9rem" }}>
-          Salary history and slip downloads
-        </p>
-      </div>
-
-      {/* Stats */}
-      <div
-        className="animate-fade-up delay-100"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-          gap: 16,
-          marginBottom: 32,
-        }}
-      >
-        <StatCard
-          label="Current Net Salary"
-          value={fmt(s.net_salary)}
-          sub={fmtMonth(latest.month)}
-          icon={DollarSign}
-          color="var(--accent)"
-        />
-        <StatCard
-          label="Basic"
-          value={fmt(s.basic)}
-          icon={TrendingUp}
-          color="var(--cyan)"
-        />
-        <StatCard
-          label="Total Deductions"
-          value={fmt(s.deductions)}
-          icon={TrendingDown}
-          color="var(--red)"
-        />
-        <StatCard
-          label="YTD Earnings"
-          value={fmt(totalYTD)}
-          sub={`${records.length} months`}
-          icon={Calendar}
-          color="var(--green)"
-        />
-      </div>
-
-      {/* History */}
-      <div className="animate-fade-up delay-200">
-        <h2
-          style={{
-            fontSize: "1rem",
-            fontWeight: 700,
-            color: "var(--text-primary)",
-            marginBottom: 14,
-          }}
-        >
-          Payroll History
-        </h2>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {records.map((rec, i) => (
-            <PayrollRow
-              key={rec.id}
-              record={rec}
-              prev={records[i + 1] ?? null}
-              onClick={() => setSelected(rec)}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Slip modal */}
-      {selected && (
-        <SlipModal
-          record={selected}
-          empName={MOCK_EMPLOYEE.full_name}
-          onClose={() => setSelected(null)}
-        />
-      )}
+      <p className="text-xs text-gray-400">
+        Employee: {payroll.employee_name} · {payroll.employee_code} · 
+        Payroll ID #{payroll.employee_id}
+      </p>
     </div>
   );
 }

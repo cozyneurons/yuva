@@ -22,6 +22,7 @@ type AuthCtx = {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  setUserAfterRegister: (user: User) => void;
   logout: () => void;
   googleLogin: () => void;
   updateUser: (data: Partial<User>) => void;
@@ -52,13 +53,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data } = await authApi.login({ email, password });
       localStorage.setItem("access_token", data.access_token);
       localStorage.setItem("refresh_token", data.refresh_token);
-      // Decode minimal info from token payload (no jwt-decode dep needed)
+      // Fetch profile from /employees/me to get employee_code and full_name
       const payload = JSON.parse(atob(data.access_token.split(".")[1]));
+      // Get employee_code from the profile endpoint
+      const profileRes = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1"}/employees/me`,
+        { headers: { Authorization: `Bearer ${data.access_token}` } }
+      );
+      let employeeCode = "";
+      if (profileRes.ok) {
+        const profile = await profileRes.json();
+        employeeCode = profile.employee_code ?? "";
+      }
       const me: User = {
-        id: payload.sub,
-        email: payload.email,
+        id: parseInt(payload.sub),
+        email: email,
         role: data.role as "admin" | "employee",
-        employee_code: payload.employee_code,
+        employee_code: employeeCode,
       };
       localStorage.setItem("user", JSON.stringify(me));
       setUser(me);
@@ -66,6 +77,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
     [router]
   );
+
+  const setUserAfterRegister = useCallback((newUser: User) => {
+    localStorage.setItem("user", JSON.stringify(newUser));
+    setUser(newUser);
+  }, []);
 
   const logout = useCallback(() => {
     localStorage.clear();
@@ -85,7 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout, googleLogin, updateUser }}>
+    <AuthContext.Provider value={{ user, isLoading, login, setUserAfterRegister, logout, googleLogin }}>
       {children}
     </AuthContext.Provider>
   );
