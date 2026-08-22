@@ -23,6 +23,12 @@ export interface EmployeeUpdate {
   profile_picture_url?: string;
 }
 
+export interface EmployeeAdminUpdate {
+  full_name?: string;
+  job_details?: string;
+  phone?: string;
+}
+
 // ── Salary / Payroll ──────────────────────────────────────────────────────────
 export interface SalaryStructure {
   basic: number;
@@ -30,6 +36,13 @@ export interface SalaryStructure {
   allowances: number;
   deductions: number;
   net_salary: number;
+}
+
+export interface SalaryStructureUpdate {
+  basic?: number;
+  hra?: number;
+  allowances?: number;
+  deductions?: number;
 }
 
 export interface PayrollRecord {

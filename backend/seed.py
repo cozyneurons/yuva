@@ -20,6 +20,14 @@ def _now():
     return datetime.now(timezone.utc)
 
 async def seed():
+    if "--demo-seed" not in sys.argv:
+        print("Error: explicitly provide --demo-seed flag to run.")
+        sys.exit(1)
+        
+    if not settings.DATABASE_URL.startswith("sqlite"):
+        print("Error: configured database is not a development database.")
+        sys.exit(1)
+
     engine = create_async_engine(settings.DATABASE_URL, echo=False)
     Session = async_sessionmaker(engine, expire_on_commit=False)
 
@@ -69,6 +77,7 @@ async def seed():
 
         # Attendance — last 10 working days
         today = date.today()
+        bob_leave_dates = []
         for emp, statuses in [
             (alice_emp, [AttendanceStatus.present]*4 + [AttendanceStatus.absent] + [AttendanceStatus.present]*3 + [AttendanceStatus.half_day, AttendanceStatus.present]),
             (bob_emp,   [AttendanceStatus.present]*2 + [AttendanceStatus.absent] + [AttendanceStatus.present]*2 + [AttendanceStatus.leave]*2 + [AttendanceStatus.present]*2 + [AttendanceStatus.present]),
@@ -76,6 +85,10 @@ async def seed():
             day = today - timedelta(days=14)
             for status in statuses:
                 while day.weekday() >= 5: day += timedelta(days=1)
+                
+                if emp.id == bob_emp.id and status == AttendanceStatus.leave:
+                    bob_leave_dates.append(day)
+                    
                 ci = co = None
                 if status in (AttendanceStatus.present, AttendanceStatus.half_day):
                     ci = datetime(day.year, day.month, day.day, 9, 0, tzinfo=timezone.utc)
@@ -88,9 +101,13 @@ async def seed():
         db.add(Leave(employee_id=alice_emp.id, leave_type=LeaveType.sick,
             start_date=today-timedelta(days=8), end_date=today-timedelta(days=8),
             status=LeaveStatus.approved, remarks="Fever", admin_comments="Get well soon!"))
+            
+        bob_leave_start = bob_leave_dates[0] if bob_leave_dates else today-timedelta(days=7)
+        bob_leave_end = bob_leave_dates[-1] if bob_leave_dates else today-timedelta(days=6)
         db.add(Leave(employee_id=bob_emp.id, leave_type=LeaveType.paid,
-            start_date=today-timedelta(days=7), end_date=today-timedelta(days=6),
+            start_date=bob_leave_start, end_date=bob_leave_end,
             status=LeaveStatus.approved, remarks="Family event", admin_comments="Approved"))
+            
         db.add(Leave(employee_id=bob_emp.id, leave_type=LeaveType.unpaid,
             start_date=today+timedelta(days=5), end_date=today+timedelta(days=6),
             status=LeaveStatus.pending, remarks="Personal work"))
