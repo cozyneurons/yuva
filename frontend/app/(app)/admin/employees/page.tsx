@@ -34,6 +34,7 @@ export default function AdminEmployeesPage() {
   const [expanded, setExpanded] = useState<number | null>(null);
   const [editForms, setEditForms] = useState<Record<number, { full_name: string; job_details: string; phone: string; basic: string; hra: string; allowances: string; deductions: string }>>({});
   const [saved, setSaved] = useState<Record<number, boolean>>({});
+  const [error, setError] = useState<string | null>(null);
 
   const filtered = (employees ?? []).filter(
     (e) =>
@@ -43,6 +44,7 @@ export default function AdminEmployeesPage() {
   );
 
   function startEdit(emp: EmpRow) {
+    setError(null);
     setEditForms((prev) => ({
       ...prev,
       [emp.id]: {
@@ -62,29 +64,34 @@ export default function AdminEmployeesPage() {
     const form = editForms[emp.id];
     if (!form) return;
 
-    // Update profile fields
-    const profilePayload: Record<string, string> = {};
-    if (form.full_name) profilePayload.full_name = form.full_name;
-    if (form.job_details) profilePayload.job_details = form.job_details;
-    if (form.phone) profilePayload.phone = form.phone;
+    setError(null);
+    try {
+      // Update profile fields
+      const profilePayload: Record<string, string> = {};
+      if (form.full_name && form.full_name !== emp.full_name) profilePayload.full_name = form.full_name;
+      if (form.job_details !== (emp.job_details ?? "")) profilePayload.job_details = form.job_details;
+      if (form.phone !== (emp.phone ?? "")) profilePayload.phone = form.phone;
 
-    if (Object.keys(profilePayload).length > 0) {
-      await updateEmp.mutateAsync({ id: emp.id, data: profilePayload });
+      if (Object.keys(profilePayload).length > 0) {
+        await updateEmp.mutateAsync({ id: emp.id, data: profilePayload });
+      }
+
+      // Update salary if any salary field entered
+      if (form.basic || form.hra || form.allowances || form.deductions) {
+        const salaryPayload: Record<string, number> = {};
+        if (form.basic) salaryPayload.basic = parseFloat(form.basic);
+        if (form.hra) salaryPayload.hra = parseFloat(form.hra);
+        if (form.allowances) salaryPayload.allowances = parseFloat(form.allowances);
+        if (form.deductions) salaryPayload.deductions = parseFloat(form.deductions);
+        await updatePayroll.mutateAsync({ employeeId: emp.id, data: { salary_structure: salaryPayload } });
+      }
+
+      setSaved((prev) => ({ ...prev, [emp.id]: true }));
+      setTimeout(() => setSaved((prev) => ({ ...prev, [emp.id]: false })), 2000);
+      setExpanded(null);
+    } catch (e: any) {
+      setError(e.message || "Failed to save changes");
     }
-
-    // Update salary if any salary field entered
-    if (form.basic || form.hra || form.allowances || form.deductions) {
-      const salaryPayload: Record<string, number> = {};
-      if (form.basic) salaryPayload.basic = parseFloat(form.basic);
-      if (form.hra) salaryPayload.hra = parseFloat(form.hra);
-      if (form.allowances) salaryPayload.allowances = parseFloat(form.allowances);
-      if (form.deductions) salaryPayload.deductions = parseFloat(form.deductions);
-      await updatePayroll.mutateAsync({ employeeId: emp.id, data: { salary_structure: salaryPayload } });
-    }
-
-    setSaved((prev) => ({ ...prev, [emp.id]: true }));
-    setTimeout(() => setSaved((prev) => ({ ...prev, [emp.id]: false })), 2000);
-    setExpanded(null);
   }
 
   if (isLoading) return (
@@ -126,8 +133,8 @@ export default function AdminEmployeesPage() {
           </thead>
           <tbody className="divide-y divide-gray-50">
             {filtered.map((emp) => (
-              <>
-                <tr key={emp.id} className="hover:bg-gray-50 transition">
+              <Fragment key={emp.id}>
+                <tr className="hover:bg-gray-50 transition">
                   <td className="px-4 py-3">
                     <p className="font-medium text-gray-900">{emp.full_name}</p>
                     <p className="text-xs text-gray-400">{emp.email} · {emp.employee_code}</p>
@@ -148,42 +155,43 @@ export default function AdminEmployeesPage() {
                   </td>
                 </tr>
                 {expanded === emp.id && editForms[emp.id] && (
-                  <tr key={`${emp.id}-edit`}>
+                  <tr>
                     <td colSpan={4} className="px-4 py-4 bg-gray-50 border-b border-gray-100">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                           <label className="block text-xs text-gray-500 mb-1">Full Name</label>
                           <input value={editForms[emp.id].full_name}
-                            onChange={e => setEditForms(p => ({...p, [emp.id]: {...p[emp.id], full_name: e.target.value}}))}
+                            onChange={e => setEditForms(p => ({ ...p, [emp.id]: { ...p[emp.id], full_name: e.target.value } }))}
                             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
                         </div>
                         <div>
                           <label className="block text-xs text-gray-500 mb-1">Role / Department</label>
                           <input value={editForms[emp.id].job_details}
-                            onChange={e => setEditForms(p => ({...p, [emp.id]: {...p[emp.id], job_details: e.target.value}}))}
+                            onChange={e => setEditForms(p => ({ ...p, [emp.id]: { ...p[emp.id], job_details: e.target.value } }))}
                             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
                         </div>
                         <div>
                           <label className="block text-xs text-gray-500 mb-1">Phone</label>
                           <input value={editForms[emp.id].phone}
-                            onChange={e => setEditForms(p => ({...p, [emp.id]: {...p[emp.id], phone: e.target.value}}))}
+                            onChange={e => setEditForms(p => ({ ...p, [emp.id]: { ...p[emp.id], phone: e.target.value } }))}
                             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
                         </div>
                         <div className="sm:col-span-2 border-t border-gray-200 pt-3 mt-1">
                           <p className="text-xs text-gray-400 mb-2 font-medium">Salary Structure (leave blank to keep current)</p>
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                            {["basic","hra","allowances","deductions"].map(field => (
+                            {["basic", "hra", "allowances", "deductions"].map(field => (
                               <div key={field}>
                                 <label className="block text-xs text-gray-500 mb-1 capitalize">{field}</label>
                                 <input type="number" placeholder="₹"
                                   value={(editForms[emp.id] as Record<string, string>)[field]}
-                                  onChange={e => setEditForms(p => ({...p, [emp.id]: {...p[emp.id], [field]: e.target.value}}))}
+                                  onChange={e => setEditForms(p => ({ ...p, [emp.id]: { ...p[emp.id], [field]: e.target.value } }))}
                                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
                               </div>
                             ))}
                           </div>
                         </div>
                       </div>
+                      {error && <p className="text-sm text-red-500 mt-3">{error}</p>}
                       <div className="flex gap-2 mt-4">
                         <button onClick={() => handleSave(emp)}
                           disabled={updateEmp.isPending || updatePayroll.isPending}
@@ -199,7 +207,7 @@ export default function AdminEmployeesPage() {
                     </td>
                   </tr>
                 )}
-              </>
+              </Fragment>
             ))}
           </tbody>
         </table>

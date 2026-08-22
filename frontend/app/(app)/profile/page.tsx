@@ -5,7 +5,8 @@ import { useMyProfile, useUpdateProfile } from "@/hooks/useQueries";
 import { useAuth } from "@/lib/auth-context";
 import { Loader2, User, MapPin, Phone, Briefcase, Mail, BadgeCheck, Edit2, Save, X, CheckCircle } from "lucide-react";
 
-function fmt(n: number) {
+function fmt(n?: number | null) {
+  if (n == null) return "—";
   return "₹" + n.toLocaleString("en-IN");
 }
 function initials(name: string) {
@@ -18,9 +19,11 @@ export default function ProfilePage() {
   const updateProfile = useUpdateProfile();
   const [editing, setEditing] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({ address: "", phone: "", profile_picture_url: "" });
 
   function startEdit() {
+    setError(null);
     setForm({
       address: profile?.address ?? "",
       phone: profile?.phone ?? "",
@@ -31,13 +34,19 @@ export default function ProfilePage() {
 
   async function handleSave() {
     const payload: Record<string, string> = {};
-    if (form.address) payload.address = form.address;
-    if (form.phone) payload.phone = form.phone;
-    if (form.profile_picture_url) payload.profile_picture_url = form.profile_picture_url;
-    await updateProfile.mutateAsync(payload);
-    setEditing(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+    if (form.address !== undefined) payload.address = form.address;
+    if (form.phone !== undefined) payload.phone = form.phone;
+    if (form.profile_picture_url !== undefined) payload.profile_picture_url = form.profile_picture_url;
+    
+    try {
+      setError(null);
+      await updateProfile.mutateAsync(payload);
+      setEditing(false);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch (e: any) {
+      setError(e.message || "Failed to update profile");
+    }
   }
 
   const sal = profile?.salary_structure as Record<string, number> | null | undefined;
@@ -78,7 +87,7 @@ export default function ProfilePage() {
             <h2 className="font-semibold text-gray-900">{profile.full_name}</h2>
             <p className="text-sm text-gray-500 mt-1">{profile.job_details ?? "Employee"}</p>
             <span className="mt-2 text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full font-medium">
-              {user?.employee_code}
+              {profile.employee_code}
             </span>
             <div className="mt-4 w-full">
               {editing ? (
@@ -130,20 +139,24 @@ export default function ProfilePage() {
             {editing ? (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm text-gray-600 mb-1.5">Address</label>
-                  <textarea rows={2} value={form.address} onChange={e => setForm({...form, address: e.target.value})}
+                  <label htmlFor="address-input" className="block text-sm text-gray-600 mb-1.5">Address</label>
+                  <textarea id="address-input" rows={2} value={form.address} onChange={e => setForm({ ...form, address: e.target.value })}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none" />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-600 mb-1.5">Phone</label>
-                  <input type="tel" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})}
+                  <label htmlFor="phone-input" className="block text-sm text-gray-600 mb-1.5">Phone</label>
+                  <input id="phone-input" type="tel" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900" />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-600 mb-1.5">Profile Picture URL</label>
-                  <input type="url" placeholder="https://…" value={form.profile_picture_url} onChange={e => setForm({...form, profile_picture_url: e.target.value})}
+                  <label htmlFor="profile-picture-input" className="block text-sm text-gray-600 mb-1.5">Profile Picture URL</label>
+                  <input id="profile-picture-input" type="url" placeholder="https://…" value={form.profile_picture_url} onChange={e => setForm({ ...form, profile_picture_url: e.target.value })}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900" />
                 </div>
+                
+                {error && (
+                  <p className="text-sm text-red-500">{error}</p>
+                )}
                 <div className="flex gap-2 pt-1">
                   <button onClick={handleSave} disabled={updateProfile.isPending}
                     className="flex items-center gap-1.5 text-sm font-medium bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-700 disabled:opacity-50 transition">
