@@ -77,7 +77,7 @@ The repository is organized into two main workspaces:
    ```bash
    npm run dev
    ```
-   The web app will be available at `http://localhost:3000`.
+   The web app will be available at `http://localhost:3001`.
 
 ---
 
