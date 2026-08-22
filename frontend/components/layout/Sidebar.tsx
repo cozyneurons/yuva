@@ -76,6 +76,9 @@ export function Sidebar() {
             id="sidebar-mobile-toggle"
             onClick={() => setMobileOpen((o) => !o)}
             className="text-gray-500 hover:text-gray-900 p-1"
+            aria-label="Toggle navigation menu"
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-navigation-drawer"
           >
             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -84,7 +87,7 @@ export function Sidebar() {
 
       {/* Mobile drawer */}
       {mobileOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 flex">
+        <div id="mobile-navigation-drawer" className="lg:hidden fixed inset-0 z-50 flex">
           <div className="absolute inset-0 bg-black/30" onClick={() => setMobileOpen(false)} />
           <aside className="relative z-10 w-56 bg-white border-r border-gray-200 p-4 flex flex-col">
             <span className="font-semibold text-gray-900 mb-3">Dayflow</span>
