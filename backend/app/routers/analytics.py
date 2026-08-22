@@ -221,6 +221,37 @@ async def admin_overview(
     )
 
 
+# ── GET /admin/employees ─────────────────────────────────────────────────────
+@router.get("/admin/employees")
+async def list_all_employees(
+    admin: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Return a summary list of all employees for the admin employee table."""
+    rows = (
+        await db.execute(
+            select(Employee, User)
+            .join(User, User.id == Employee.user_id)
+            .order_by(Employee.id)
+        )
+    ).all()
+
+    return [
+        {
+            "id": emp.id,
+            "user_id": usr.id,
+            "employee_code": usr.employee_code,
+            "email": usr.email,
+            "full_name": emp.full_name,
+            "job_details": emp.job_details,
+            "phone": emp.phone,
+            "role": usr.role.value,
+            "net_salary": _net_salary(emp.salary_structure),
+        }
+        for emp, usr in rows
+    ]
+
+
 # ── GET /admin/employees/{id}/summary ───────────────────────────────────────
 @router.get("/admin/employees/{employee_id}/summary", response_model=EmployeeSummary)
 async def admin_employee_summary(

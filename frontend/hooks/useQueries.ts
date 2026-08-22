@@ -1,7 +1,53 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { attendanceApi, leaveApi, dashboardApi } from "@/lib/api";
+import { attendanceApi, leaveApi, dashboardApi, profileApi, payrollApi } from "@/lib/api";
+
+// ─── Profile ─────────────────────────────────────────────────────────────────
+
+export function useMyProfile() {
+  return useQuery({
+    queryKey: ["profile-me"],
+    queryFn: () => profileApi.getMe().then((r) => r.data),
+  });
+}
+
+export function useUpdateProfile() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: unknown) => profileApi.updateMe(data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["profile-me"] }),
+  });
+}
+
+export function useUpdateEmployeeAdmin() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: unknown }) =>
+      profileApi.updateEmployee(id, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-employees"] }),
+  });
+}
+
+// ─── Payroll ─────────────────────────────────────────────────────────────────
+
+export function usePayroll(employeeId: number | undefined) {
+  return useQuery({
+    queryKey: ["payroll", employeeId],
+    queryFn: () => payrollApi.get(employeeId!).then((r) => r.data),
+    enabled: !!employeeId,
+  });
+}
+
+export function useUpdatePayroll() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ employeeId, data }: { employeeId: number; data: unknown }) =>
+      payrollApi.update(employeeId, data),
+    onSuccess: (_data, vars) =>
+      qc.invalidateQueries({ queryKey: ["payroll", vars.employeeId] }),
+  });
+}
 
 // ─── Dashboard ───────────────────────────────────────────────────────────────
 

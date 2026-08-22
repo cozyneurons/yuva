@@ -85,3 +85,28 @@ export const notificationsApi = {
   list: () => api.get("/notifications"),
   markRead: (id: number) => api.patch(`/notifications/${id}/read`),
 };
+
+// ─── Profile ─────────────────────────────────────────────────────────────────
+
+export const profileApi = {
+  getMe: () => api.get("/employees/me"),
+  updateMe: (data: unknown) => api.patch("/employees/me", data),
+  getEmployee: (id: number) => api.get(`/employees/${id}`),
+  updateEmployee: (id: number, data: unknown) => api.patch(`/employees/${id}`, data),
+};
+
+// ─── Payroll ──────────────────────────────────────────────────────────────────
+
+export const payrollApi = {
+  get: (employeeId: number) => api.get(`/payroll/${employeeId}`),
+  update: (employeeId: number, data: unknown) => api.patch(`/payroll/${employeeId}`, data),
+  downloadSlip: (employeeId: number) =>
+    api.get(`/payroll/${employeeId}/slip`, { responseType: "blob" }),
+};
+
+// ─── Admin ────────────────────────────────────────────────────────────────────
+
+export const adminApi = {
+  listEmployees: () => api.get("/admin/employees"),
+  getEmployeeSummary: (id: number) => api.get(`/admin/employees/${id}/summary`),
+};

@@ -12,6 +12,7 @@ import {
   LogOut,
   Menu,
   X,
+  Users,
 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
@@ -31,7 +32,8 @@ const navItems: NavItem[] = [
   { href: "/leave", label: "Leave", icon: CalendarOff },
   { href: "/profile", label: "Profile", icon: User },
   { href: "/payroll", label: "Payroll", icon: CreditCard },
-  { href: "/admin/dashboard", label: "Admin", icon: BarChart3, adminOnly: true },
+  { href: "/admin/dashboard", label: "Admin Overview", icon: BarChart3, adminOnly: true },
+  { href: "/admin/employees", label: "Employees", icon: Users, adminOnly: true },
 ];
 
 export function Sidebar() {
