@@ -31,15 +31,15 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-8 sm:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+    <div className="brutal-card p-8 sm:p-10">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Sign in</h1>
-        <p className="text-sm text-slate-500 mt-2 font-medium">Welcome back to Dayflow</p>
+        <h1 className="text-4xl font-serif font-bold text-theme-dark tracking-tight">Sign in</h1>
+        <p className="text-sm text-theme-dark/70 mt-2 font-bold">Welcome back to Dayflow.</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" id="login-form">
         <div>
-          <label htmlFor="login-email" className="block text-sm font-semibold text-slate-700 mb-1.5">
+          <label htmlFor="login-email" className="block text-sm font-bold text-theme-dark mb-1.5">
             Work Email
           </label>
           <input
@@ -48,7 +48,7 @@ export default function LoginPage() {
             autoComplete="email"
             placeholder="you@company.com"
             {...register("email")}
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all duration-200"
+            className="brutal-input"
           />
           {errors.email && (
             <p className="text-xs text-red-500 mt-1.5 font-medium flex items-center gap-1">
@@ -59,7 +59,7 @@ export default function LoginPage() {
         </div>
 
         <div>
-          <label htmlFor="login-password" className="block text-sm font-semibold text-slate-700 mb-1.5">
+          <label htmlFor="login-password" className="block text-sm font-bold text-theme-dark mb-1.5">
             Password
           </label>
           <input
@@ -68,7 +68,7 @@ export default function LoginPage() {
             autoComplete="current-password"
             placeholder="••••••••"
             {...register("password")}
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all duration-200"
+            className="brutal-input"
           />
           {errors.password && (
             <p className="text-xs text-red-500 mt-1.5 font-medium flex items-center gap-1">
@@ -79,8 +79,8 @@ export default function LoginPage() {
         </div>
 
         {serverErr && (
-          <div className="p-3 bg-red-50 border border-red-100 rounded-lg text-sm text-red-600 font-medium flex items-start gap-2">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <div className="p-3 bg-[#FFB5B5] border-2 border-theme-dark rounded-xl text-sm text-red-900 font-bold flex items-start gap-2 shadow-[2px_2px_0px_0px_rgba(17,17,17,1)]">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             {serverErr}
           </div>
         )}
@@ -89,7 +89,7 @@ export default function LoginPage() {
           id="login-submit"
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-slate-900 hover:bg-indigo-600 text-white text-sm font-semibold py-3.5 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98]"
+          className="brutal-btn w-full py-3.5 flex items-center justify-center gap-2 mt-4"
         >
           {isSubmitting && <Loader2 size={16} className="animate-spin" />}
           {isSubmitting ? "Signing in..." : "Sign in"}
@@ -97,15 +97,15 @@ export default function LoginPage() {
       </form>
 
       <div className="flex items-center gap-4 my-6">
-        <div className="flex-1 h-px bg-slate-200" />
-        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">or</span>
-        <div className="flex-1 h-px bg-slate-200" />
+        <div className="flex-1 h-0.5 bg-theme-dark/10" />
+        <span className="text-xs font-bold text-theme-dark/50 uppercase tracking-wider">or</span>
+        <div className="flex-1 h-0.5 bg-theme-dark/10" />
       </div>
 
       <button
         id="google-login-btn"
         onClick={googleLogin}
-        className="w-full flex items-center justify-center gap-3 bg-white border border-slate-200 text-slate-700 text-sm font-semibold py-3.5 rounded-xl hover:bg-slate-50 transition-all duration-200 shadow-sm active:scale-[0.98]"
+        className="brutal-btn-outline w-full bg-white flex items-center justify-center gap-3 py-3.5"
       >
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
           <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615Z" fill="#4285F4"/>
@@ -116,9 +116,9 @@ export default function LoginPage() {
         Continue with Google
       </button>
 
-      <p className="text-center text-sm text-slate-500 mt-8 font-medium">
+      <p className="text-center text-sm text-theme-dark/70 mt-8 font-bold">
         Don't have an account?{" "}
-        <Link href="/register" className="text-indigo-600 font-semibold hover:text-indigo-700 transition-colors">
+        <Link href="/register" className="text-theme-dark underline hover:text-theme-green transition-colors">
           Create account
         </Link>
       </p>

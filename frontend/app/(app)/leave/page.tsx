@@ -60,14 +60,14 @@ export default function LeavePage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">Leave</h2>
-          <p className="text-sm text-gray-500">Manage your time off</p>
+          <h2 className="text-4xl font-serif font-bold text-theme-dark tracking-tight">Leave</h2>
+          <p className="text-sm font-bold text-slate-600 mt-2">Manage your time off</p>
         </div>
         {user?.role === "employee" && (
           <button
             id="request-leave-btn"
             onClick={() => setShowForm((s) => !s)}
-            className="text-sm font-medium text-gray-900 border border-gray-300 px-3 py-1.5 rounded-md hover:bg-gray-50 transition"
+            className="brutal-btn-outline text-sm"
           >
             {showForm ? "Cancel" : "Request leave"}
           </button>
@@ -76,114 +76,119 @@ export default function LeavePage() {
 
       {/* Request form */}
       {showForm && (
-        <div className="bg-white border border-gray-200 rounded-lg p-5">
-          <p className="text-sm font-medium text-gray-900 mb-4">New request</p>
+        <div className="brutal-card p-6 bg-theme-mint">
+          <p className="text-sm font-bold text-theme-dark mb-4 uppercase tracking-wider">New request</p>
           <form id="leave-request-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label htmlFor="leave-type" className="block text-sm text-gray-700 mb-1">Type</label>
+                <label htmlFor="leave-type" className="block text-sm font-bold text-theme-dark mb-2">Type</label>
                 <select
                   id="leave-type"
                   {...register("leave_type")}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                  className="brutal-input"
                 >
                   <option value="">Select</option>
                   <option value="paid">Paid</option>
                   <option value="sick">Sick</option>
                   <option value="unpaid">Unpaid</option>
                 </select>
-                {errors.leave_type && <p className="text-xs text-red-500 mt-1">{errors.leave_type.message}</p>}
+                {errors.leave_type && <p className="text-xs font-bold text-red-700 mt-1">{errors.leave_type.message}</p>}
               </div>
               <div>
-                <label htmlFor="leave-start" className="block text-sm text-gray-700 mb-1">Start</label>
+                <label htmlFor="leave-start" className="block text-sm font-bold text-theme-dark mb-2">Start</label>
                 <input id="leave-start" type="date" {...register("start_date")}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent" />
-                {errors.start_date && <p className="text-xs text-red-500 mt-1">{errors.start_date.message}</p>}
+                  className="brutal-input" />
+                {errors.start_date && <p className="text-xs font-bold text-red-700 mt-1">{errors.start_date.message}</p>}
               </div>
               <div>
-                <label htmlFor="leave-end" className="block text-sm text-gray-700 mb-1">End</label>
+                <label htmlFor="leave-end" className="block text-sm font-bold text-theme-dark mb-2">End</label>
                 <input id="leave-end" type="date" {...register("end_date")}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent" />
-                {errors.end_date && <p className="text-xs text-red-500 mt-1">{errors.end_date.message}</p>}
+                  className="brutal-input" />
+                {errors.end_date && <p className="text-xs font-bold text-red-700 mt-1">{errors.end_date.message}</p>}
               </div>
             </div>
             <div>
-              <label htmlFor="leave-remarks" className="block text-sm text-gray-700 mb-1">
-                Remarks <span className="text-gray-400">(optional)</span>
+              <label htmlFor="leave-remarks" className="block text-sm font-bold text-theme-dark mb-2">
+                Remarks <span className="text-theme-dark/60 font-normal">(optional)</span>
               </label>
               <textarea id="leave-remarks" rows={2} {...register("remarks")}
                 placeholder="Any details…"
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none" />
+                className="brutal-input resize-none" />
             </div>
-            {serverErr && <p className="text-sm text-red-500">{serverErr}</p>}
+            {serverErr && <p className="text-sm font-bold text-red-700 bg-[#FFB5B5] p-3 rounded-lg border-2 border-theme-dark">{serverErr}</p>}
             <button id="leave-submit-btn" type="submit" disabled={isSubmitting}
-              className="bg-gray-900 hover:bg-gray-700 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-md transition flex items-center gap-2">
-              {isSubmitting && <Loader2 size={13} className="animate-spin" />}
-              Submit
+              className="brutal-btn flex items-center justify-center gap-2 w-full sm:w-auto mt-2">
+              {isSubmitting && <Loader2 size={16} className="animate-spin" />}
+              Submit Request
             </button>
           </form>
         </div>
       )}
 
       {/* Leave list */}
-      <div className="bg-white border border-gray-200 rounded-lg p-5">
-        <p className="text-sm font-medium text-gray-900 mb-3">
+      <div className="brutal-card p-6 sm:p-8">
+        <p className="text-sm font-bold text-theme-dark mb-6 uppercase tracking-wider">
           {user?.role === "admin" ? "All requests" : "My requests"}
         </p>
         {isLoading && (
-          <div className="flex items-center gap-2 text-gray-400 text-sm">
-            <Loader2 size={13} className="animate-spin" /> Loading…
+          <div className="flex items-center gap-3 text-theme-dark text-sm font-bold">
+            <Loader2 size={16} className="animate-spin" /> Loading…
           </div>
         )}
         {isError && (
-          <p className="text-sm text-red-500">Failed to load leave requests.</p>
+          <p className="text-sm font-bold text-red-700">Failed to load leave requests.</p>
         )}
         {!isLoading && !isError && (!leaves || (leaves as LeaveRecord[]).length === 0) && (
-          <p className="text-sm text-gray-400">No leave requests yet.</p>
+          <p className="text-sm font-bold text-slate-500">No leave requests yet.</p>
         )}
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y-2 divide-theme-dark/10">
           {(leaves as LeaveRecord[] | undefined)?.map((leave) => (
-            <div key={leave.id} className="py-3 flex items-start justify-between gap-4">
+            <div key={leave.id} className="py-5 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
               <div>
                 {user?.role === "admin" && leave.employee_name && (
-                  <p className="text-sm font-medium text-gray-900">{leave.employee_name}</p>
+                  <p className="text-lg font-serif font-bold text-theme-dark mb-1">{leave.employee_name}</p>
                 )}
-                <p className="text-sm text-gray-700 capitalize">{leave.leave_type} leave</p>
-                <p className="text-xs text-gray-400 mt-0.5">
+                <p className="text-sm font-bold text-theme-dark capitalize">{leave.leave_type} leave</p>
+                <p className="text-xs font-bold text-slate-500 mt-1">
                   {formatDate(leave.start_date)} – {formatDate(leave.end_date)}
                 </p>
                 {leave.remarks && (
-                  <p className="text-xs text-gray-400 mt-0.5 italic">{leave.remarks}</p>
+                  <p className="text-sm text-slate-700 mt-2 bg-slate-50 p-3 rounded-lg border-2 border-theme-dark shadow-[1px_1px_0px_0px_rgba(17,17,17,1)]">{leave.remarks}</p>
                 )}
                 {leave.admin_comments && (
-                  <p className="text-xs text-gray-500 mt-0.5">Note: {leave.admin_comments}</p>
+                  <p className="text-xs font-bold text-theme-dark mt-2 bg-[#F9F871] p-2 rounded border-2 border-theme-dark inline-block">Note: {leave.admin_comments}</p>
                 )}
               </div>
 
-              <div className="flex flex-col items-end gap-2 shrink-0">
-                <span className={`text-xs font-medium capitalize ${statusColors[leave.status] ?? "text-gray-500"}`}>
+              <div className="flex flex-col items-start sm:items-end gap-3 shrink-0 mt-3 sm:mt-0">
+                <span className={cn(
+                  "inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border-2 border-theme-dark shadow-[1px_1px_0px_0px_rgba(17,17,17,1)] capitalize",
+                  leave.status === "approved" ? "bg-theme-green text-white" :
+                  leave.status === "rejected" ? "bg-[#FFB5B5] text-red-900" :
+                  "bg-[#F9F871] text-amber-900"
+                )}>
                   {leave.status}
                 </span>
                 {user?.role === "admin" && leave.status === "pending" && (
-                  <div className="space-y-1.5 text-right">
+                  <div className="space-y-2 text-right w-full">
                     <input
                       type="text"
                       placeholder="Comment (optional)"
                       value={adminComment[leave.id] ?? ""}
                       onChange={(e) => setAdminComment((prev) => ({ ...prev, [leave.id]: e.target.value }))}
-                      className="text-xs border border-gray-200 rounded px-2 py-1 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 w-36"
+                      className="brutal-input py-2 px-3 text-xs w-full sm:w-48"
                     />
-                    <div className="flex gap-1.5">
+                    <div className="flex gap-2 justify-end">
                       <button id={`approve-leave-${leave.id}`}
                         onClick={() => updateStatus.mutate({ id: leave.id, status: "approved", admin_comments: adminComment[leave.id] })}
                         disabled={updateStatus.isPending}
-                        className="text-xs border border-gray-300 text-gray-700 px-2 py-1 rounded hover:bg-gray-50 transition disabled:opacity-50">
+                        className="bg-theme-green text-white border-2 border-theme-dark rounded-md px-3 py-1 text-xs font-bold shadow-[2px_2px_0px_0px_rgba(17,17,17,1)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_rgba(17,17,17,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50">
                         Approve
                       </button>
                       <button id={`reject-leave-${leave.id}`}
                         onClick={() => updateStatus.mutate({ id: leave.id, status: "rejected", admin_comments: adminComment[leave.id] })}
                         disabled={updateStatus.isPending}
-                        className="text-xs border border-gray-300 text-gray-700 px-2 py-1 rounded hover:bg-gray-50 transition disabled:opacity-50">
+                        className="bg-[#FFB5B5] text-theme-dark border-2 border-theme-dark rounded-md px-3 py-1 text-xs font-bold shadow-[2px_2px_0px_0px_rgba(17,17,17,1)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_rgba(17,17,17,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50">
                         Reject
                       </button>
                     </div>
