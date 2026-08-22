@@ -24,7 +24,7 @@ function Stat({ label, value, sub }: { label: string; value: string | number; su
 }
 
 export default function AdminDashboardPage() {
-  const { data, isLoading } = useAdminOverview();
+  const { data, isLoading, isError } = useAdminOverview();
 
   return (
     <div className="space-y-6">
@@ -38,15 +38,20 @@ export default function AdminDashboardPage() {
           <Loader2 size={14} className="animate-spin" /> Loading…
         </div>
       )}
+      {isError && (
+        <p className="text-sm text-red-500">Failed to load admin overview.</p>
+      )}
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Stat label="Total employees" value={data?.total_employees ?? "—"} />
-        <Stat label="Present today" value={data?.present_today ?? "—"} sub={data?.attendance_rate ? `${data.attendance_rate}%` : undefined} />
-        <Stat label="On leave" value={data?.on_leave_today ?? "—"} />
-        <Stat label="Pending leaves" value={data?.pending_leaves ?? "—"} />
-      </div>
+      {!isError && (
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <Stat label="Total employees" value={data?.total_employees ?? "—"} />
+            <Stat label="Present today" value={data?.present_today ?? "—"} sub={data?.attendance_rate != null ? `${data.attendance_rate}%` : undefined} />
+            <Stat label="On leave" value={data?.on_leave_today ?? "—"} />
+            <Stat label="Pending leaves" value={data?.pending_leaves ?? "—"} />
+          </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg p-5">
+          <div className="bg-white border border-gray-200 rounded-lg p-5">
         <p className="text-sm font-medium text-gray-900 mb-3">Pending leave requests</p>
         {data?.pending_leave_requests?.length ? (
           <table className="w-full text-sm">
@@ -73,6 +78,8 @@ export default function AdminDashboardPage() {
           <p className="text-sm text-gray-400">No pending requests</p>
         )}
       </div>
+        </>
+      )}
     </div>
   );
 }
