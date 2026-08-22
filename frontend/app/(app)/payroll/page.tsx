@@ -42,7 +42,8 @@ export default function PayrollPage() {
     <p className="text-sm text-red-500 p-8">Failed to load payroll data.</p>
   );
 
-  const s = payroll.salary_structure as Record<string, number> | null | undefined;
+  const currentPayroll = Array.isArray(payroll) ? payroll[0] : payroll;
+  const s = currentPayroll?.salary_structure as Record<string, number> | null | undefined;
 
   if (!s) return (
     <div className="space-y-6 max-w-2xl">
@@ -125,8 +126,8 @@ export default function PayrollPage() {
       </div>
 
       <p className="text-xs text-gray-400">
-        Employee: {payroll.employee_name} · {payroll.employee_code} · 
-        Payroll ID #{payroll.employee_id}
+        Employee: {currentPayroll.full_name} · {currentPayroll.employee_code} · 
+        Payroll ID #{currentPayroll.id}
       </p>
     </div>
   );
