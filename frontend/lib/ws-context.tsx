@@ -90,13 +90,16 @@ export function WSProvider({ children }: { children: React.ReactNode }) {
     };
   }, [startPolling]);
 
-    useEffect(() => {
+  useEffect(() => {
     connect();
     return () => {
       const ws = wsRef.current;
       wsRef.current = null;
       ws?.close();
-      if (pollingRef.current) clearInterval(pollingRef.current);
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
     };
   }, [connect]);
 
