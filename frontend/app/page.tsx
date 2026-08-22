@@ -11,7 +11,21 @@ export default function HomePage() {
     if (user) {
       try {
         const parsed = JSON.parse(user);
-        router.replace(parsed.role === "admin" ? "/admin/dashboard" : "/dashboard");
+        if (
+          parsed &&
+          typeof parsed === "object" &&
+          Object.prototype.hasOwnProperty.call(parsed, "role")
+        ) {
+          const { role } = parsed as { role?: unknown };
+          if (role === "admin") {
+            router.replace("/admin/dashboard");
+            return;
+          } else if (role === "employee") {
+            router.replace("/dashboard");
+            return;
+          }
+        }
+        router.replace("/login");
       } catch {
         router.replace("/login");
       }
@@ -22,4 +36,3 @@ export default function HomePage() {
 
   return null;
 }
-
