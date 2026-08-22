@@ -18,15 +18,11 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     # Enums
-    user_role = postgresql.ENUM("admin", "employee", name="user_role", create_type=True)
-    attendance_status = postgresql.ENUM("present", "absent", "half_day", "leave", name="attendance_status", create_type=True)
-    leave_type = postgresql.ENUM("paid", "sick", "unpaid", name="leave_type", create_type=True)
-    leave_status = postgresql.ENUM("pending", "approved", "rejected", name="leave_status", create_type=True)
+    user_role = sa.Enum("admin", "employee", name="user_role")
+    attendance_status = sa.Enum("present", "absent", "half_day", "leave", name="attendance_status")
+    leave_type = sa.Enum("paid", "sick", "unpaid", name="leave_type")
+    leave_status = sa.Enum("pending", "approved", "rejected", name="leave_status")
 
-    user_role.create(op.get_bind(), checkfirst=True)
-    attendance_status.create(op.get_bind(), checkfirst=True)
-    leave_type.create(op.get_bind(), checkfirst=True)
-    leave_status.create(op.get_bind(), checkfirst=True)
 
     op.create_table(
         "users",
@@ -35,9 +31,9 @@ def upgrade() -> None:
         sa.Column("email", sa.String(255), unique=True, nullable=False),
         sa.Column("password_hash", sa.Text(), nullable=True),
         sa.Column("google_id", sa.String(255), unique=True, nullable=True),
-        sa.Column("role", postgresql.ENUM("admin", "employee", name="user_role", create_type=False), nullable=False, server_default="employee"),
+        sa.Column("role", sa.Enum("admin", "employee", name="user_role"), nullable=False, server_default="employee"),
         sa.Column("is_verified", sa.Boolean(), nullable=False, server_default=sa.false()),
-        sa.Column("created_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column("created_at", sa.TIMESTAMP(timezone=True), server_default=sa.func.now(), nullable=False),
         sa.CheckConstraint("password_hash IS NOT NULL OR google_id IS NOT NULL", name="ck_users_has_login_method"),
     )
 
@@ -49,10 +45,10 @@ def upgrade() -> None:
         sa.Column("address", sa.Text(), nullable=True),
         sa.Column("phone", sa.String(20), nullable=True),
         sa.Column("job_details", sa.Text(), nullable=True),
-        sa.Column("salary_structure", postgresql.JSONB(), nullable=True),
-        sa.Column("documents", postgresql.JSONB(), nullable=True),
+        sa.Column("salary_structure", sa.JSON(), nullable=True),
+        sa.Column("documents", sa.JSON(), nullable=True),
         sa.Column("profile_picture_url", sa.Text(), nullable=True),
-        sa.Column("updated_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column("updated_at", sa.TIMESTAMP(timezone=True), server_default=sa.func.now(), nullable=False),
     )
 
     op.create_table(
@@ -62,7 +58,7 @@ def upgrade() -> None:
         sa.Column("date", sa.Date(), nullable=False),
         sa.Column("check_in", sa.TIMESTAMP(timezone=True), nullable=True),
         sa.Column("check_out", sa.TIMESTAMP(timezone=True), nullable=True),
-        sa.Column("status", postgresql.ENUM("present", "absent", "half_day", "leave", name="attendance_status", create_type=False), nullable=False, server_default="present"),
+        sa.Column("status", sa.Enum("present", "absent", "half_day", "leave", name="attendance_status"), nullable=False, server_default="present"),
         sa.UniqueConstraint("employee_id", "date", name="uq_attendance_emp_date"),
     )
     op.create_index("idx_attendance_emp_date", "attendance", ["employee_id", "date"])
@@ -71,10 +67,10 @@ def upgrade() -> None:
         "leaves",
         sa.Column("id", sa.Integer(), primary_key=True),
         sa.Column("employee_id", sa.Integer(), sa.ForeignKey("employees.id", ondelete="CASCADE"), nullable=False),
-        sa.Column("leave_type", postgresql.ENUM("paid", "sick", "unpaid", name="leave_type", create_type=False), nullable=False),
+        sa.Column("leave_type", sa.Enum("paid", "sick", "unpaid", name="leave_type"), nullable=False),
         sa.Column("start_date", sa.Date(), nullable=False),
         sa.Column("end_date", sa.Date(), nullable=False),
-        sa.Column("status", postgresql.ENUM("pending", "approved", "rejected", name="leave_status", create_type=False), nullable=False, server_default="pending"),
+        sa.Column("status", sa.Enum("pending", "approved", "rejected", name="leave_status"), nullable=False, server_default="pending"),
         sa.Column("remarks", sa.Text(), nullable=True),
         sa.Column("admin_comments", sa.Text(), nullable=True),
         sa.CheckConstraint("end_date >= start_date", name="ck_leave_dates"),
@@ -87,7 +83,7 @@ def upgrade() -> None:
         sa.Column("user_id", sa.Integer(), sa.ForeignKey("users.id", ondelete="CASCADE"), nullable=False),
         sa.Column("message", sa.Text(), nullable=False),
         sa.Column("is_read", sa.Boolean(), nullable=False, server_default=sa.false()),
-        sa.Column("created_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column("created_at", sa.TIMESTAMP(timezone=True), server_default=sa.func.now(), nullable=False),
     )
 
 
