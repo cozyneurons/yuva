@@ -91,8 +91,23 @@ export function useAttendance() {
 export function useCheckIn() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: () => attendanceApi.checkIn(),
-    onSuccess: () => {
+    mutationFn: () => attendanceApi.checkIn().then(r => r.data),
+    onSuccess: (data) => {
+      qc.setQueryData(["attendance"], (old: any) => {
+        if (!old) return old;
+        const now = new Date();
+        const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        return {
+          ...old,
+          today: {
+            ...(old.today || {}),
+            id: old.today?.id || Date.now(),
+            date: todayStr,
+            check_in: data.check_in || new Date().toISOString(),
+            status: "present"
+          }
+        };
+      });
       qc.invalidateQueries({ queryKey: ["attendance"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       qc.invalidateQueries({ queryKey: ["admin-overview"] });
@@ -103,8 +118,18 @@ export function useCheckIn() {
 export function useCheckOut() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: () => attendanceApi.checkOut(),
-    onSuccess: () => {
+    mutationFn: () => attendanceApi.checkOut().then(r => r.data),
+    onSuccess: (data) => {
+      qc.setQueryData(["attendance"], (old: any) => {
+        if (!old || !old.today) return old;
+        return {
+          ...old,
+          today: {
+            ...old.today,
+            check_out: data.check_out || new Date().toISOString(),
+          }
+        };
+      });
       qc.invalidateQueries({ queryKey: ["attendance"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       qc.invalidateQueries({ queryKey: ["admin-overview"] });
