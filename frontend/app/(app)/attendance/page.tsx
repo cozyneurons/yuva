@@ -60,7 +60,7 @@ export default function AttendancePage() {
           <button
             id="check-in-btn"
             onClick={() => checkIn.mutate()}
-            disabled={hasCheckedIn || checkIn.isPending}
+            disabled={!attendance || hasCheckedIn || checkIn.isPending}
             className={cn(
               "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-sm font-medium border transition",
               hasCheckedIn
