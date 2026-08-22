@@ -61,15 +61,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         { headers: { Authorization: `Bearer ${data.access_token}` } }
       );
       let employeeCode = "";
+      let fullName = "";
       if (profileRes.ok) {
         const profile = await profileRes.json();
         employeeCode = profile.employee_code ?? "";
+        fullName = profile.full_name ?? "";
       }
       const me: User = {
         id: parseInt(payload.sub),
         email: email,
         role: data.role as "admin" | "employee",
         employee_code: employeeCode,
+        ...(fullName && { full_name: fullName }),
       };
       localStorage.setItem("user", JSON.stringify(me));
       setUser(me);
@@ -101,7 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, setUserAfterRegister, logout, googleLogin }}>
+    <AuthContext.Provider value={{ user, isLoading, login, setUserAfterRegister, logout, googleLogin, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
