@@ -37,17 +37,17 @@ export default function CompleteProfilePage() {
   };
 
   return (
-    <div className="glass rounded-2xl p-8 shadow-2xl">
-      <div className="mb-8 text-center">
-        <h1 className="text-2xl font-bold text-gray-100">Complete your profile</h1>
-        <p className="text-gray-400 mt-2 text-sm">
+    <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm">
+      <div className="mb-7">
+        <h1 className="text-xl font-semibold text-gray-900">Complete your profile</h1>
+        <p className="text-sm text-gray-500 mt-1">
           Just a couple of details before you start
         </p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" id="complete-profile-form">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" id="complete-profile-form">
         <div>
-          <label htmlFor="cp-emp-code" className="block text-sm text-gray-300 mb-1.5">
+          <label htmlFor="cp-emp-code" className="block text-sm font-medium text-gray-700 mb-1">
             Employee ID
           </label>
           <input
@@ -55,15 +55,15 @@ export default function CompleteProfilePage() {
             type="text"
             placeholder="EMP-001"
             {...register("employee_code")}
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
           />
           {errors.employee_code && (
-            <p className="text-xs text-red-400 mt-1">{errors.employee_code.message}</p>
+            <p className="text-xs text-red-500 mt-1">{errors.employee_code.message}</p>
           )}
         </div>
 
         <div>
-          <label htmlFor="cp-full-name" className="block text-sm text-gray-300 mb-1.5">
+          <label htmlFor="cp-full-name" className="block text-sm font-medium text-gray-700 mb-1">
             Full name
           </label>
           <input
@@ -71,22 +71,22 @@ export default function CompleteProfilePage() {
             type="text"
             placeholder="Ankita Sharma"
             {...register("full_name")}
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
           />
           {errors.full_name && (
-            <p className="text-xs text-red-400 mt-1">{errors.full_name.message}</p>
+            <p className="text-xs text-red-500 mt-1">{errors.full_name.message}</p>
           )}
         </div>
 
         {serverErr && (
-          <p className="text-sm text-red-400 text-center">{serverErr}</p>
+          <p className="text-sm text-red-500 text-center">{serverErr}</p>
         )}
 
         <button
           id="complete-profile-submit"
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-semibold py-2.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
+          className="w-full bg-gray-900 hover:bg-gray-800 disabled:opacity-50 text-white font-medium py-2 rounded-lg transition-colors flex justify-center items-center gap-2"
         >
           {isSubmitting && <Loader2 size={16} className="animate-spin" />}
           Go to dashboard
