@@ -1,12 +1,12 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-// Root page: redirect handled client-side based on localStorage user
 export default function HomePage() {
   const router = useRouter();
 
-  if (typeof window !== "undefined") {
+  useEffect(() => {
     const user = localStorage.getItem("user");
     if (user) {
       try {
@@ -18,7 +18,8 @@ export default function HomePage() {
     } else {
       router.replace("/login");
     }
-  }
+  }, [router]);
 
   return null;
 }
+

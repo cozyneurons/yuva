@@ -2,7 +2,7 @@
 
 import { useAttendance, useCheckIn, useCheckOut } from "@/hooks/useQueries";
 import { formatDate, formatTime } from "@/lib/utils";
-import { Clock, LogIn, LogOut, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type AttendanceRecord = {
@@ -13,11 +13,11 @@ type AttendanceRecord = {
   status: "present" | "absent" | "half_day" | "leave";
 };
 
-const statusStyle: Record<string, string> = {
-  present: "bg-green-500/15 text-green-400",
-  absent: "bg-red-500/15 text-red-400",
-  half_day: "bg-amber-500/15 text-amber-400",
-  leave: "bg-indigo-500/15 text-indigo-400",
+const statusLabel: Record<string, string> = {
+  present: "Present",
+  absent: "Absent",
+  half_day: "Half day",
+  leave: "Leave",
 };
 
 export default function AttendancePage() {
@@ -27,120 +27,95 @@ export default function AttendancePage() {
 
   const today = data?.today as AttendanceRecord | undefined;
   const weekly = (data?.weekly ?? []) as AttendanceRecord[];
-
   const hasCheckedIn = !!today?.check_in;
   const hasCheckedOut = !!today?.check_out;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-100">Attendance</h2>
-        <p className="text-gray-500 text-sm mt-1">{formatDate(new Date())}</p>
+        <h2 className="text-lg font-semibold text-gray-900">Attendance</h2>
+        <p className="text-sm text-gray-500">{formatDate(new Date())}</p>
       </div>
 
-      {/* Today card */}
-      <div className="glass rounded-2xl p-6 glow">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-indigo-500/15 flex items-center justify-center text-indigo-400">
-            <Clock size={20} />
-          </div>
-          <div>
-            <p className="text-base font-semibold text-gray-200">Today</p>
-            <p className="text-xs text-gray-500">{formatDate(new Date())}</p>
-          </div>
-        </div>
+      {/* Today */}
+      <div className="bg-white border border-gray-200 rounded-lg p-5">
+        <p className="text-sm font-medium text-gray-700 mb-4">Today</p>
 
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="bg-white/5 rounded-xl p-4">
-            <p className="text-xs text-gray-500 mb-1">Check-in</p>
-            <p className="text-lg font-semibold text-gray-100">
+        <div className="grid grid-cols-2 gap-3 mb-5">
+          <div>
+            <p className="text-xs text-gray-400 mb-0.5">Check-in</p>
+            <p className="text-sm font-medium text-gray-900">
               {today?.check_in ? formatTime(today.check_in) : "—"}
             </p>
           </div>
-          <div className="bg-white/5 rounded-xl p-4">
-            <p className="text-xs text-gray-500 mb-1">Check-out</p>
-            <p className="text-lg font-semibold text-gray-100">
+          <div>
+            <p className="text-xs text-gray-400 mb-0.5">Check-out</p>
+            <p className="text-sm font-medium text-gray-900">
               {today?.check_out ? formatTime(today.check_out) : "—"}
             </p>
           </div>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex gap-2">
           <button
             id="check-in-btn"
             onClick={() => checkIn.mutate()}
             disabled={hasCheckedIn || checkIn.isPending}
             className={cn(
-              "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all duration-200",
+              "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-sm font-medium border transition",
               hasCheckedIn
-                ? "bg-white/5 text-gray-600 cursor-not-allowed"
-                : "bg-green-600 hover:bg-green-500 text-white"
+                ? "border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed"
+                : "border-gray-900 text-gray-900 bg-white hover:bg-gray-50"
             )}
           >
-            {checkIn.isPending ? (
-              <Loader2 size={16} className="animate-spin" />
-            ) : (
-              <LogIn size={16} />
-            )}
+            {checkIn.isPending && <Loader2 size={13} className="animate-spin" />}
             {hasCheckedIn ? "Checked in ✓" : "Check in"}
           </button>
-
           <button
             id="check-out-btn"
             onClick={() => checkOut.mutate()}
             disabled={!hasCheckedIn || hasCheckedOut || checkOut.isPending}
             className={cn(
-              "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all duration-200",
+              "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-sm font-medium border transition",
               !hasCheckedIn || hasCheckedOut
-                ? "bg-white/5 text-gray-600 cursor-not-allowed"
-                : "bg-red-600 hover:bg-red-500 text-white"
+                ? "border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed"
+                : "border-gray-900 text-gray-900 bg-white hover:bg-gray-50"
             )}
           >
-            {checkOut.isPending ? (
-              <Loader2 size={16} className="animate-spin" />
-            ) : (
-              <LogOut size={16} />
-            )}
+            {checkOut.isPending && <Loader2 size={13} className="animate-spin" />}
             {hasCheckedOut ? "Checked out ✓" : "Check out"}
           </button>
         </div>
       </div>
 
-      {/* Weekly history */}
-      <div className="glass rounded-2xl p-6">
-        <h3 className="text-base font-semibold text-gray-200 mb-4">This week</h3>
+      {/* Weekly */}
+      <div className="bg-white border border-gray-200 rounded-lg p-5">
+        <p className="text-sm font-medium text-gray-700 mb-3">This week</p>
         {isLoading ? (
-          <div className="flex items-center gap-2 text-gray-500 text-sm">
-            <Loader2 size={14} className="animate-spin" />
-            Loading…
+          <div className="flex items-center gap-2 text-gray-400 text-sm">
+            <Loader2 size={13} className="animate-spin" /> Loading…
           </div>
         ) : (
-          <div className="space-y-2">
-            {weekly.map((record) => (
-              <div
-                key={record.id ?? record.date}
-                className="flex items-center justify-between py-2.5 border-b border-white/5 last:border-0"
-              >
-                <div>
-                  <p className="text-sm font-medium text-gray-200">
-                    {formatDate(record.date)}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {record.check_in ? formatTime(record.check_in) : "—"} →{" "}
-                    {record.check_out ? formatTime(record.check_out) : "—"}
-                  </p>
-                </div>
-                <span
-                  className={cn(
-                    "px-3 py-0.5 rounded-full text-xs font-medium capitalize",
-                    statusStyle[record.status] ?? "bg-gray-500/15 text-gray-400"
-                  )}
-                >
-                  {record.status.replace("_", " ")}
-                </span>
-              </div>
-            ))}
-          </div>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs text-gray-400 border-b border-gray-100">
+                <th className="pb-2 font-normal">Date</th>
+                <th className="pb-2 font-normal">In</th>
+                <th className="pb-2 font-normal">Out</th>
+                <th className="pb-2 font-normal">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {weekly.map((r) => (
+                <tr key={r.id ?? r.date} className="text-gray-700">
+                  <td className="py-2">{formatDate(r.date)}</td>
+                  <td className="py-2">{r.check_in ? formatTime(r.check_in) : "—"}</td>
+                  <td className="py-2">{r.check_out ? formatTime(r.check_out) : "—"}</td>
+                  <td className="py-2 text-gray-500">{statusLabel[r.status] ?? r.status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
     </div>
