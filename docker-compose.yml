@@ -1,0 +1,62 @@
+# Dayflow HRMS — local dev stack (Nihaal — Backend Support)
+#
+#   docker compose up --build
+#
+# Brings up Postgres, Mailpit (email testing), and the FastAPI backend. On first
+# start the backend creates the schema and seeds demo data (set SEED_ON_START=false
+# to skip the demo data). Frontend runs separately via `npm run dev`.
+#
+#   API        → http://localhost:8000        (docs at /docs)
+#   Mailpit UI → http://localhost:8025         (SMTP on :1025)
+#   Postgres   → localhost:5432                (dayflow / dayflow)
+name: dayflow
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: dayflow
+      POSTGRES_PASSWORD: dayflow
+      POSTGRES_DB: dayflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - dayflow_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dayflow -d dayflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # web UI
+    environment:
+      MP_MAX_MESSAGES: 500
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+
+  backend:
+    build:
+      context: ./backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://dayflow:dayflow@db:5432/dayflow
+      SECRET_KEY: dev-secret-change-me
+      ACCESS_TOKEN_EXPIRE_MINUTES: 30
+      REFRESH_TOKEN_EXPIRE_DAYS: 7
+      FRONTEND_URL: http://localhost:3000
+      # Point future email code at Mailpit
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      # true → seed demo data on first start; false → empty schema only
+      SEED_ON_START: "true"
+    ports:
+      - "8000:8000"
+
+volumes:
+  dayflow_pgdata:
