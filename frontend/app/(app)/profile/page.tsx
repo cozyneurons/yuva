@@ -128,10 +128,11 @@ function EditForm({
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div>
-        <label style={{ fontSize: "0.8rem", color: "var(--text-secondary)", display: "block", marginBottom: 6 }}>
+        <label htmlFor="address" style={{ fontSize: "0.8rem", color: "var(--text-secondary)", display: "block", marginBottom: 6 }}>
           Address
         </label>
         <textarea
+          id="address"
           className="input"
           rows={2}
           value={form.address}
@@ -140,10 +141,11 @@ function EditForm({
         />
       </div>
       <div>
-        <label style={{ fontSize: "0.8rem", color: "var(--text-secondary)", display: "block", marginBottom: 6 }}>
+        <label htmlFor="phone" style={{ fontSize: "0.8rem", color: "var(--text-secondary)", display: "block", marginBottom: 6 }}>
           Phone
         </label>
         <input
+          id="phone"
           className="input"
           type="tel"
           value={form.phone}
@@ -151,10 +153,11 @@ function EditForm({
         />
       </div>
       <div>
-        <label style={{ fontSize: "0.8rem", color: "var(--text-secondary)", display: "block", marginBottom: 6 }}>
+        <label htmlFor="profile_picture_url" style={{ fontSize: "0.8rem", color: "var(--text-secondary)", display: "block", marginBottom: 6 }}>
           Profile Picture URL
         </label>
         <input
+          id="profile_picture_url"
           className="input"
           type="url"
           placeholder="https://..."
@@ -207,7 +210,7 @@ function SalaryCard({ emp }: { emp: Employee }) {
               {r.label}
             </span>
             <span style={{ fontSize: "0.875rem", fontWeight: 600, color: r.color }}>
-              {r.value > 0 ? fmt(r.value) : `−${fmt(-r.value)}`}
+              {r.value >= 0 ? fmt(r.value) : `−${fmt(-r.value)}`}
             </span>
           </div>
         ))}

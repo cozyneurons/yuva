@@ -31,6 +31,14 @@ The backend provides a robust, fast, and secure API to power the application.
 
 ---
 
+## Project Structure
+
+The repository is organized into two main workspaces:
+- `backend/`: FastAPI application containing all API routes, database models, Alembic migrations, and business logic.
+- `frontend/`: Next.js application containing all UI components, pages (organized via App Router route groups), and React Query hooks.
+
+---
+
 ## Getting Started
 
 ### 1. Setting up the Backend
@@ -99,8 +107,3 @@ The backend provides a robust, fast, and secure API to power the application.
 - Background jobs for automated end-of-day absentee marking (APScheduler)
 - Advanced analytics and reporting dashboards with PDF generation (e.g., salary slips)
 
----
-
-## Design Reference
-
-- [Excalidraw Workflow & Mockups](https://link.excalidraw.com/l/65VNwvy7c4X/58RLEJ4oOwh)

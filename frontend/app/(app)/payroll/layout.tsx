@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import DashboardLayout from "@/components/DashboardLayout";
 
 export const metadata: Metadata = {
   title: "Payroll — Dayflow HRMS",
@@ -7,5 +6,5 @@ export const metadata: Metadata = {
 };
 
 export default function PayrollLayout({ children }: { children: React.ReactNode }) {
-  return <DashboardLayout>{children}</DashboardLayout>;
+  return <>{children}</>;
 }

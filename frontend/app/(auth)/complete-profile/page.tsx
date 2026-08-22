@@ -29,8 +29,10 @@ export default function CompleteProfilePage() {
       await api.patch("/employees/me", data);
       router.push("/dashboard");
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { detail?: string } } };
-      setServerErr(err?.response?.data?.detail ?? "Failed to save. Try again.");
+      const err = e as { response?: { data?: { detail?: string | any[] } } };
+      const detail = err?.response?.data?.detail;
+      const msg = typeof detail === "string" ? detail : (Array.isArray(detail) ? detail[0]?.msg : null);
+      setServerErr(msg ?? "Failed to save. Try again.");
     }
   };
 
