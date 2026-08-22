@@ -67,6 +67,7 @@ export function WSProvider({ children }: { children: React.ReactNode }) {
     wsRef.current = ws;
 
     ws.onopen = () => {
+      if (wsRef.current !== ws) return;
       setConnected(true);
       if (pollingRef.current) {
         clearInterval(pollingRef.current);
@@ -75,6 +76,7 @@ export function WSProvider({ children }: { children: React.ReactNode }) {
     };
 
     ws.onmessage = (event) => {
+      if (wsRef.current !== ws) return;
       try {
         const msg = JSON.parse(event.data) as Notification;
         setNotifications((prev) => [msg, ...prev]);

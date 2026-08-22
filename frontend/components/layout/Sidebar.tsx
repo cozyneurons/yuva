@@ -105,7 +105,7 @@ export function Sidebar() {
   const links = navItems.filter((item) => !item.adminOnly || user?.role === "admin");
 
   const NavLinks = () => (
-    <nav className="flex flex-col gap-1 mt-4">
+    <nav className="flex flex-col gap-2 mt-6">
       {links.map(({ href, label, icon: Icon }) => {
         const active = href === "/dashboard" ? pathname === href : pathname.startsWith(href);
         return (
@@ -114,16 +114,13 @@ export function Sidebar() {
             href={href}
             onClick={() => setMobileOpen(false)}
             className={cn(
-              "group relative flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all duration-200 overflow-hidden",
+              "group relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200 border-2 border-transparent",
               active
-                ? "text-indigo-700 font-semibold bg-indigo-50/80"
-                : "text-slate-500 hover:text-slate-900 hover:bg-slate-100/50"
+                ? "bg-theme-mint text-theme-dark border-theme-dark shadow-[2px_2px_0px_0px_rgba(17,17,17,1)] translate-x-[-2px] translate-y-[-2px]"
+                : "text-slate-600 hover:text-theme-dark hover:bg-white hover:border-theme-dark hover:shadow-[2px_2px_0px_0px_rgba(17,17,17,1)] hover:translate-x-[-2px] hover:translate-y-[-2px]"
             )}
           >
-            {active && (
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-1/2 bg-indigo-600 rounded-r-full" />
-            )}
-            <Icon size={18} className={cn("transition-transform duration-200", active ? "scale-110" : "group-hover:scale-110")} />
+            <Icon size={18} className={cn("transition-transform duration-200", active ? "scale-110 stroke-[2.5px]" : "group-hover:scale-110")} />
             {label}
           </Link>
         );
@@ -134,12 +131,12 @@ export function Sidebar() {
   return (
     <>
       {/* Mobile top bar */}
-      <header className="lg:hidden flex items-center justify-between px-5 py-4 border-b border-slate-200/60 bg-white/80 backdrop-blur-md sticky top-0 z-40">
+      <header className="lg:hidden flex items-center justify-between px-5 py-4 border-b-2 border-theme-dark bg-theme-beige sticky top-0 z-40">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center shadow-md shadow-indigo-200">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <div className="w-8 h-8 rounded-lg bg-theme-green border-2 border-theme-dark flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(17,17,17,1)]">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
           </div>
-          <span className="font-bold tracking-tight text-slate-900">Dayflow</span>
+          <span className="font-serif font-bold text-xl tracking-tight text-theme-dark">Dayflow.</span>
         </div>
         <div className="flex items-center gap-3">
           <NotificationBell />
@@ -159,13 +156,13 @@ export function Sidebar() {
       {/* Mobile drawer */}
       {mobileOpen && (
         <div id="mobile-navigation-drawer" role="dialog" aria-modal="true" ref={drawerRef} className="lg:hidden fixed inset-0 z-50 flex">
-          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={() => setMobileOpen(false)} />
-          <aside className="relative z-10 w-64 bg-white/95 backdrop-blur-xl border-r border-slate-200/60 p-5 flex flex-col shadow-2xl">
+          <div className="absolute inset-0 bg-theme-dark/40 backdrop-blur-sm transition-opacity" onClick={() => setMobileOpen(false)} />
+          <aside className="relative z-10 w-64 bg-theme-beige border-r-2 border-theme-dark p-5 flex flex-col shadow-[8px_0_0_0_rgba(17,17,17,1)]">
             <div className="flex items-center gap-2 mb-6 px-2">
-              <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center shadow-md shadow-indigo-200">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              <div className="w-8 h-8 rounded-lg bg-theme-green border-2 border-theme-dark flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(17,17,17,1)]">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
               </div>
-              <span className="font-bold tracking-tight text-slate-900">Dayflow</span>
+              <span className="font-serif font-bold text-xl tracking-tight text-theme-dark">Dayflow.</span>
             </div>
             <NavLinks />
             <button
@@ -180,30 +177,30 @@ export function Sidebar() {
       )}
 
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex flex-col w-64 shrink-0 border-r border-slate-200/60 bg-white/60 backdrop-blur-xl px-4 py-6 z-10 sticky top-0 h-screen">
-        <div className="flex items-center gap-2.5 px-4 mb-8">
-          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-md shadow-indigo-200">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      <aside className="hidden lg:flex flex-col w-64 shrink-0 border-r-2 border-theme-dark bg-theme-beige px-5 py-6 z-10 sticky top-0 h-screen">
+        <div className="flex items-center gap-3 px-4 mb-4">
+          <div className="w-10 h-10 rounded-xl bg-theme-green border-2 border-theme-dark flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(17,17,17,1)]">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
           </div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-900">Dayflow</h1>
+          <h1 className="text-2xl font-serif font-bold tracking-tight text-theme-dark mt-1">Dayflow.</h1>
         </div>
 
         <NavLinks />
 
-        <div className="mt-auto pt-6 border-t border-slate-200/60">
-          <div className="flex items-center justify-between mb-4 px-4 bg-slate-100/50 p-3 rounded-xl border border-slate-200/50">
+        <div className="mt-auto pt-6 border-t-2 border-theme-dark">
+          <div className="flex items-center justify-between mb-4 px-4 bg-white border-2 border-theme-dark p-3 rounded-xl shadow-[2px_2px_0px_0px_rgba(17,17,17,1)]">
             <div className="overflow-hidden">
-              <p className="text-sm font-semibold text-slate-800 truncate">{user?.full_name ?? "User"}</p>
-              <p className="text-xs text-slate-500 truncate">{user?.email}</p>
+              <p className="text-sm font-bold text-theme-dark truncate">{user?.full_name ?? "User"}</p>
+              <p className="text-xs text-slate-500 font-medium truncate">{user?.email}</p>
             </div>
             <NotificationBell />
           </div>
           <button
             id="logout-btn"
             onClick={logout}
-            className="flex w-full items-center justify-center gap-2 text-sm font-medium text-slate-500 hover:text-red-600 hover:bg-red-50 py-2.5 rounded-xl transition-colors"
+            className="flex w-full items-center justify-center gap-2 text-sm font-bold text-slate-600 border-2 border-transparent hover:text-white hover:bg-theme-dark hover:shadow-[2px_2px_0px_0px_rgba(17,17,17,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] py-2.5 rounded-xl transition-all duration-200"
           >
-            <LogOut size={14} />
+            <LogOut size={16} className="stroke-[2.5px]" />
             Sign out
           </button>
         </div>
