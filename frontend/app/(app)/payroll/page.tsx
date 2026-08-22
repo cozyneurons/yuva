@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   DollarSign,
   Download,
@@ -104,6 +104,49 @@ function SlipModal({
   empName: string;
   onClose: () => void;
 }) {
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Focus the modal when it opens
+    modalRef.current?.focus();
+    
+    // Save previous focus
+    const previousFocus = document.activeElement as HTMLElement;
+    
+    // Handle Escape and Tab
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key === "Tab" && modalRef.current) {
+        const focusableElements = modalRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            lastElement?.focus();
+            e.preventDefault();
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            firstElement?.focus();
+            e.preventDefault();
+          }
+        }
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      previousFocus?.focus();
+    };
+  }, [onClose]);
+
   const s: SalaryStructure = record.salary_structure;
   const rows = [
     { label: "Basic Salary", amount: s.basic, type: "earn" },
@@ -151,7 +194,12 @@ Paid on: ${record.paid_at ? new Date(record.paid_at).toLocaleDateString("en-IN")
       onClick={onClose}
     >
       <div
-        className="card animate-fade-up"
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+        tabIndex={-1}
+        className="card animate-fade-up focus-visible:outline-none"
         style={{ maxWidth: 480, width: "100%", padding: 32 }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -166,6 +214,7 @@ Paid on: ${record.paid_at ? new Date(record.paid_at).toLocaleDateString("en-IN")
         >
           <div>
             <h2
+              id="modal-title"
               style={{
                 fontWeight: 800,
                 fontSize: "1.1rem",
@@ -278,8 +327,16 @@ function PayrollRow({
 
   return (
     <div
-      className="card card-glow"
+      role="button"
+      tabIndex={0}
+      className="card card-glow focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:outline-none"
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
       style={{
         padding: "18px 22px",
         display: "flex",
